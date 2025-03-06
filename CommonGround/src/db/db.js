@@ -7,8 +7,17 @@ const { Pool } = pkg; // Destructure the Pool object from the imported package
 
 // Create a new pool instance, managing database connections
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
+    user: 'admin', // Default PostgreSQL user
+    host: 'virginia-postgres.render.com', // Default PostgreSQL host
+    database: 'db_54al',
+    password: 'yPqASFsvtBNMKwSiUHGEniwP9eqB7vAf', // Default PostgreSQL password
+    port: 5432, // Default PostgreSQL port
+    ssl: {
+        rejectUnauthorized: false, // Allow self-signed certificates
+    },
 });
+
+export default pool;
 
 export { pool };
 
