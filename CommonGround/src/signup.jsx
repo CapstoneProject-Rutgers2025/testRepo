@@ -18,7 +18,7 @@ const SignUp = () => {
       }
   
       try {
-        const response = await fetch('http://virginia-postgres.render.com:5432', {
+        const response = await fetch('http://localhost:3000/signup', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
