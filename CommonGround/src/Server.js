@@ -1,6 +1,7 @@
 import { createUsersTable } from './concepts/Queries.js';
 import { insertUser } from './concepts/Queries.js';
 import express from 'express';
+import cors from 'cors';
 import bodyParser from 'body-parser';
 
 
@@ -8,6 +9,8 @@ import bodyParser from 'body-parser';
 const app = express();
 const port = process.env.PORT || 3000;
 
+// use cors middlware
+app.use(cors());
 //setting up app parameters
 app.use(bodyParser.json());
 app.post('/signup', async (req, res) => {

@@ -18,7 +18,7 @@ const SignUp = () => {
       }
   
       try {
-        const response = await fetch('http://localhost:3000/signup', {
+        const response = await fetch('https://testrepo-hkzu.onrender.com', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
