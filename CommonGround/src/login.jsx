@@ -13,15 +13,26 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Simulated login response
-    const simulatedResponse = { ok: true, token: "fake-token" };
-
-    if (simulatedResponse.ok) {
-      localStorage.setItem("token", simulatedResponse.token);
-      navigate("/dashboard");
-    } else {
-      setError("Login failed. Please try again.");
+  
+    try {
+      const response = await fetch('https://testrepo-hkzu.onrender.com/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        navigate('/dashboard');
+      } else {
+        const errorText = await response.text();
+        setError('Login failed: ' + errorText);
+      }
+    } catch (err) {
+      setError('Login failed: ' + err.message);
     }
   };
 

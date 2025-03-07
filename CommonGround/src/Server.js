@@ -3,7 +3,9 @@ import { insertUser } from './concepts/Queries.js';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-
+import jwt from 'jsonwebtoken';
+import { pool } from './db/db.js';
+import bcrypt from 'bcrypt';
 
 //setting up express
 const app = express();
@@ -22,6 +24,23 @@ app.post('/signup', async (req, res) => {
         res.status(500).send('Error creating user: ' + err.message);
     }
 });
+
+// login route
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      const user = result.rows[0];
+      if (user && await bcrypt.compare(password, user.password)) {
+        const token = jwt.sign({ id: user.id, email: user.email }, '8f7b592f27d6a8f611fb72cdcb0a220d3669278c76fd9e0f5a0fba9cffd73a3cd0227b7a45834c693b7d203404bf2fe3f1d1eaff4f6b013ed8b29d82546909ff', { expiresIn: '1h' });
+        res.status(200).json({ token });
+      } else {
+        res.status(401).send('Invalid email or password');
+      }
+    } catch (err) {
+      res.status(500).send('Error logging in: ' + err.message);
+    }
+  });
 
 //setting up the server
 app.listen(port, () => {
