@@ -28,10 +28,10 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  return user ? (
+  return userData ? (
     <div>
-      <h1>Welcome, {user.full_name}!</h1>
-      <p>Your email: {user.email}</p>
+      <h1>Welcome, {userData.full_name}!</h1>
+      <p>Your email: {userData.email}</p>
     </div>
   ) : (
     <p>Loading...</p>
