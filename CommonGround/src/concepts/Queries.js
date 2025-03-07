@@ -42,6 +42,16 @@ async function insertUser(username, email, password) {
     }
 }
 
+export async function getUserByEmail(email) {
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        return result.rows[0];
+    } catch (err) {
+        console.error('Error fetching user by email:', err);
+        throw err;
+    }
+}
+
 async function createUser(username, email, password) {
     if (await isPasswordDuplicate(password)) {
         throw new Error("Password is already in use. Please choose a different one.");
