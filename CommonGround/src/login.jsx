@@ -13,38 +13,26 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
-        const response = await fetch('http://localhost:3000/login', { // Replace with your backend URL if deployed
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem("token", data.token); // Store the JWT
-            navigate("/dashboard"); // Navigate to the dashboard
-        } else {
-            const errorText = await response.text();
-            setError(errorText || 'Login failed. Please try again.');
-        }
+      const response = await fetch('https://testrepo-hkzu.onrender.com/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        navigate('/dashboard');
+      } else {
+        const errorText = await response.text();
+        setError('Login failed: ' + errorText);
+      }
     } catch (err) {
-        console.error('Error during login:', err);
-        setError('An error occurred. Please try again.');
-    }
-
-
-    // Simulated login response
-    const simulatedResponse = { ok: true, token: "fake-token" };
-
-    if (simulatedResponse.ok) {
-      localStorage.setItem("token", simulatedResponse.token);
-      navigate("/dashboard");
-    } else {
-      setError("Login failed. Please try again.");
+      setError('Login failed: ' + err.message);
     }
   };
 

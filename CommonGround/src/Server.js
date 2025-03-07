@@ -3,10 +3,10 @@ import { insertUser } from './concepts/Queries.js';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-
+import { pool } from './db/db.js';
+import bcrypt from 'bcrypt';
+import dotenv from 'dotenv'
 
 //setting up express
 const app = express();
