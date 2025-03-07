@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import { pool } from './db/db.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv'
+import { getUserByEmail } from './concepts/Queries.js';
 
 //setting up express
 const app = express();
