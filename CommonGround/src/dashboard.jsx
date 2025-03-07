@@ -8,12 +8,14 @@ const Dashboard = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    console.log("Token from localStorage:", token);
 
     if (!token) {
       navigate("/login");
     } else {
       try {
         const decodedToken = jwtDecode(token);
+        console.log("Decoded token:", decodedToken);
         const userData = {
           full_name: decodedToken.full_name,
           email: decodedToken.email,

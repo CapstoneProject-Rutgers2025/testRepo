@@ -25,6 +25,7 @@ const Login = () => {
   
       if (response.ok) {
         const data = await response.json();
+        console.log("Token received:", data.token);
         localStorage.setItem('token', data.token);
         navigate('/dashboard');
       } else {
