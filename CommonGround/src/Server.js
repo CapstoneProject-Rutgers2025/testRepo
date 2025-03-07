@@ -48,10 +48,10 @@ app.post('/login', async (req, res) => {
 
         // Generate a JWT token
         const token = jwt.sign(
-            { id: user.id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
+          { id: user.id, full_name: user.username, email: user.email },
+          process.env.JWT_SECRET,
+          { expiresIn: '1h' }
+      );
 
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
