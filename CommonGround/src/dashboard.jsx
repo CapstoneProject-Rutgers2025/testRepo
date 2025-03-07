@@ -15,7 +15,7 @@ const Dashboard = () => {
     } else {
       try {
         const decodedToken = jwtDecode(token);
-        console.log("Decoded token:", decodedToken);
+         console.log("Decoded token:", decodedToken);
         const userData = {
           full_name: decodedToken.full_name,
           email: decodedToken.email,
@@ -28,10 +28,10 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  return userData ? (
+  return user ? (
     <div>
-      <h1>Welcome, {userData.full_name}!</h1>
-      <p>Your email: {userData.email}</p>
+      <h1>Welcome, {user.full_name = userData.full_name}!</h1>
+      <p>Your email: {user.email = userData.email}</p>
     </div>
   ) : (
     <p>Loading...</p>
