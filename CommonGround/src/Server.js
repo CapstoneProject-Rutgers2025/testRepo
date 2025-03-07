@@ -3,6 +3,9 @@ import { insertUser } from './concepts/Queries.js';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import dotenv from 'dotenv';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 
 //setting up express
@@ -22,6 +25,39 @@ app.post('/signup', async (req, res) => {
         res.status(500).send('Error creating user: ' + err.message);
     }
 });
+
+// Login Route
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        // Fetch the user by email
+        const user = await getUserByEmail(email);
+
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        // Compare the provided password with the stored hashed password
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).send('Invalid credentials');
+        }
+
+        // Generate a JWT token
+        const token = jwt.sign(
+            { id: user.id, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        res.status(200).json({ message: 'Login successful', token });
+    } catch (error) {
+        res.status(500).send('Server error: ' + error.message);
+    }
+});
+
 
 //setting up the server
 app.listen(port, () => {
