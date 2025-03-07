@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import jwtDecode from "jwt-decode";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -9,14 +10,19 @@ const Dashboard = () => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      navigate("/login"); 
+      navigate("/login");
     } else {
-      
-      const mockUserData = {
-        full_name: "John Doe",
-        email: "john.doe@example.com",
-      };
-      setUser(mockUserData); 
+      try {
+        const decodedToken = jwtDecode(token);
+        const userData = {
+          full_name: decodedToken.full_name,
+          email: decodedToken.email,
+        };
+        setUser(userData);
+      } catch (error) {
+        console.error("Invalid token:", error);
+        navigate("/login");
+      }
     }
   }, [navigate]);
 

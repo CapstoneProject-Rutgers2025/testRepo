@@ -42,7 +42,7 @@ async function insertUser(username, email, password) {
     }
 }
 
-export async function getUserByEmail(email) {
+async function getUserByEmail(email) {
     try {
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         return result.rows[0];
@@ -69,4 +69,4 @@ async function createUser(username, email, password) {
     }
 }
 
-export { createUsersTable, createUser, insertUser, isPasswordDuplicate }; 
+export { createUsersTable, createUser, insertUser, isPasswordDuplicate, getUserByEmail }; 
