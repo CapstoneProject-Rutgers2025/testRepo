@@ -30,8 +30,8 @@ const Dashboard = () => {
 
   return user ? (
     <div>
-      <h1>Welcome, {user.full_name = userData.full_name}!</h1>
-      <p>Your email: {user.email = userData.email}</p>
+      <h1>Welcome, {user.full_name}!</h1>
+      <p>Your email: {user.email}</p>
     </div>
   ) : (
     <p>Loading...</p>
