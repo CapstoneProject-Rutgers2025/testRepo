@@ -12,13 +12,11 @@
     height: 100vh;
   }
   
-  /* Left Side (Mint Green) */
-  .left-side {
+ .left-side {
     flex: 1;
-    background: url("https://htmlcolorcodes.com/assets/images/colors/mint-green-color-solid-background-1920x1080.png");
-    background-size: cover;
-    background-position: center;
-  }
+    background-color: #73cbc8; 
+}
+
   
   /* Right Side (Login Form) */
   .right-side {
