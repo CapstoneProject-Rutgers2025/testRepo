@@ -1,0 +1,128 @@
+body, html {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    height: 100%;
+}
+
+.home-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; 
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #73cbc8; 
+    padding: 1rem 2rem;
+    color: white;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: white;
+}
+
+.nav-buttons .nav-btn {
+    margin-left: 10px;
+    padding: 10px 15px;
+    border: 2px solid white;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.nav-buttons .nav-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.hero-section {
+    text-align: center;
+    padding: 5rem 2rem; 
+    background-color: #ffffff;
+}
+
+.hero-section h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.hero-section p {
+    color: #555;
+    font-size: 1.2rem;
+}
+
+.collaboration-visuals {
+    text-align: center;
+    padding: 5rem 2rem; 
+    background-color: #e8f5f4;
+}
+
+.collaboration-visuals h2 {
+    margin-bottom: 2rem; 
+}
+
+.visuals-container {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 1rem; 
+}
+
+.visual-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    width: 220px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.boards-preview {
+    text-align: center;
+    padding: 5rem 2rem; 
+}
+
+.boards-preview h2 {
+    margin-bottom: 2rem; 
+}
+
+.board-grid {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.board-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    width: 220px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.board-card:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.footer {
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.9rem;
+    background-color: #ffffff;
+    color: #333;
+    margin-top: auto; 
+}
