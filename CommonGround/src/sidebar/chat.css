@@ -1,0 +1,97 @@
+/* Container for the entire chat */
+.chat.content-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-top: 60px; /* Add 'px' to specify pixels */
+  }
+  h2 {
+    text-align: center;
+    color: #333;
+    font-family: 'Arial', sans-serif;
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  p {
+    text-align: center;
+    color: #555;
+    font-size: 16px;
+    font-family: 'Arial', sans-serif;
+    margin-bottom: 20px;
+  }
+  
+  /* Chat messages container */
+  .messages {
+    height: 300px; /* Fixed height to make chat scrollable */
+    overflow-y: scroll; /* Make the messages scrollable */
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Each message box */
+  .message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #e0f7fa;
+    max-width: 80%;
+    clear: both;
+  }
+  
+  /* Styling for user messages */
+  .message.sent {
+    background-color: #c8e6c9; /* Light green for sent messages */
+    align-self: flex-end; /* Align messages to the right */
+  }
+  
+  /* Styling for incoming messages */
+  .message.received {
+    background-color: #f1f1f1; /* Light gray for received messages */
+    align-self: flex-start; /* Align messages to the left */
+  }
+  
+  /* Input area */
+  input[type="text"] {
+    width: calc(100% - 80px); /* Full width minus space for the button */
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    outline: none;
+    box-sizing: border-box;
+  }
+  
+  /* Send button */
+  chat.button {
+    width: 60px;
+    padding: 10px;
+    margin-top: 15px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+  
+  chat.button:hover {
+    background-color: #45a049; /* Darker green when hovered */
+  }
+  
+  /* Message input area flex container */
+  input[type="text"], button {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  
+  

@@ -1,0 +1,155 @@
+/* Full-screen container */
+.p-profile-container {
+    width: 50%;
+    max-width: 600px;
+    margin: 40px auto;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease-in-out;
+  }
+  
+  /* Profile Card */
+  .p-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .p-profile-pic {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 4px solid #007bff;
+  }
+  
+  .p-profile-info h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: bold;
+  }
+  
+  .p-profile-info p {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .p-edit-btn {
+    background: linear-gradient(135deg, #007bff, #00bfff);
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    transition: 0.3s ease;
+
+  }
+  
+  .p-edit-btn:hover {
+    background: linear-gradient(135deg, #0056b3, #0094cc);
+  }
+  
+  /* Friends Section */
+  .friends-section {
+    margin-top: 20px;
+  }
+  
+  .friends-list {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  
+  .friend-item {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .friend-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #007bff;
+  }
+  
+  /* Tags Section */
+  .tags-section {
+    margin-top: 20px;
+  }
+  
+  .tags-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 10px;
+    max-height: 50px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+  }
+  
+  .tags-grid.expanded {
+    max-height: 200px;
+  }
+  
+  .tag-btn {
+    background: #ddd;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+  }
+  
+  .tag-btn:hover {
+    background: #007bff;
+    color: white;
+  }
+  
+  .toggle-tags-btn {
+    background: transparent;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+  
+  /* Groups Section */
+  .groups-section {
+    margin-top: 20px;
+  }
+  
+  .group-item {
+    display: flex;
+    justify-content: space-between;
+    background: #f8f9fa;
+    padding: 12px;
+    margin-top: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .group-item:hover {
+    background: #e0e0e0;
+  }
+  
+  .arrow {
+    font-weight: bold;
+  }
+  

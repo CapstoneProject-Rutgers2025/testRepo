@@ -2,19 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FaBars,
-  FaHome,
-  FaBell,
-  FaPlus,
-  FaUser,
-  FaSignOutAlt,
-  FaTimes,
-  FaCheck,
-  FaComments,
-  FaSyncAlt,
-  FaQuestionCircle,
-} from "react-icons/fa";
+import { FaPlus, FaTimes, FaCheck } from "react-icons/fa";
+import Sidebar from "./sidebar/side"; 
 import "./dashboard.css";
 
 const Dashboard = () => {
@@ -26,6 +15,12 @@ const Dashboard = () => {
     { id: 2, content: "🔥 Another exciting update!", liked: null },
   ]);
 
+  // ✅ Toggle Sidebar
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => !prev);
+  };
+
+  // ✅ Authentication Check
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -38,11 +33,13 @@ const Dashboard = () => {
           email: decodedToken.email,
         });
       } catch (error) {
+        console.error("Invalid token:", error);
         navigate("/login");
       }
     }
   }, [navigate]);
 
+  // ✅ Handle Swipe (X or ✔)
   const handleSwipe = (id, liked) => {
     setPosts((prev) => {
       const swipedPost = prev.find((post) => post.id === id);
@@ -65,68 +62,24 @@ const Dashboard = () => {
 
   return user ? (
     <div className="dashboard-container">
-      <motion.div
-        className={`sidebar ${sidebarOpen ? "open" : ""}`}
-        initial={{ x: -250 }}
-        animate={{ x: sidebarOpen ? 0 : -250 }}
-        transition={{ duration: 0.3 }}
-      >
-        <button className="close-sidebar" onClick={() => setSidebarOpen(false)}>
-          ✖
-        </button>
-        <ul>
-          <li>
-            <FaHome /> Dashboard
-          </li>
-          <li>
-            <FaUser /> Profile
-          </li>
-          <li>
-            <FaBell /> Notifications
-          </li>
-          <li>
-            <FaComments /> Chat
-          </li>
-          <li>
-            <FaSyncAlt /> Updates
-          </li>
-          <li>
-            <FaQuestionCircle /> Help
-          </li>
-          <li>
-            <FaSignOutAlt /> Logout
-          </li>
-        </ul>
-      </motion.div>
+      {/* ✅ Sidebar */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-      <div className="navbar">
-        <motion.div
-          whileHover={{ scale: 1.2 }}
-          whileTap={{ scale: 0.9 }}
-          transition={{ duration: 0.2 }}
-        >
-          <FaBars onClick={() => setSidebarOpen(true)} />
+      {/* ✅ Main Content */}
+      <div className={`dashboard-content ${sidebarOpen ? "shift" : ""}`}>
+
+        {/* ✅ User Profile */}
+        <motion.div className="profile-card">
+          <div className="profile-picture"></div>
+          <h2>{user.full_name}</h2>
+          <p>{user.email}</p>
         </motion.div>
-        <div className="nav-right">
-          <motion.div whileHover={{ scale: 1.2 }} transition={{ duration: 0.2 }}>
-            <FaHome />
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.2 }} transition={{ duration: 0.2 }}>
-            <FaBell />
-          </motion.div>
-        </div>
-      </div>
 
-      <motion.div className="profile-card">
-        <div className="profile-picture"></div>
-        <h2>{user.full_name}</h2>
-        <p>{user.email}</p>
-      </motion.div>
-
-      <div className="post-container">
-        <AnimatePresence>
-          {posts.length > 0 && (
-            <motion.div
+        {/* ✅ Posts Section */}
+        <div className="post-container">
+          <AnimatePresence>
+            {posts.length > 0 && (
+              <motion.div
               key={posts[0].id}
               className="post-card"
               drag="x"
@@ -139,11 +92,16 @@ const Dashboard = () => {
               }}
               transition={{ duration: 0.3 }}
             >
+              {/* Profile Picture */}
               <div className="profile-picture"></div>
-              <div className="post-content">
-                <div className="post-image"></div>
-                <p className="post-description">{posts[0].content}</p>
-              </div>
+            
+              {/* Post Image */}
+              <div className="post-image"></div>
+            
+              {/* Post Description */}
+              <p className="post-description">{posts[0].content}</p>
+            
+              {/* Accept & Reject Buttons */}
               <div className="post-actions">
                 <motion.button
                   className="reject-button"
@@ -163,18 +121,21 @@ const Dashboard = () => {
                 </motion.button>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            
+            )}
+          </AnimatePresence>
+        </div>
 
-      <div className="bottom-bar">
-        <motion.button
-          className="create-post-btn"
-          whileHover={{ scale: 1.2, rotate: 10 }}
-          transition={{ duration: 0.2 }}
-        >
-          <FaPlus />
-        </motion.button>
+        {/* ✅ Bottom Bar (Centered) */}
+        <div className="bottom-bar">
+          <motion.button
+            className="create-post-btn"
+            whileHover={{ scale: 1.2, rotate: 10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <FaPlus />
+          </motion.button>
+        </div>
       </div>
     </div>
   ) : (
