@@ -11,8 +11,8 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [posts, setPosts] = useState([
-    { id: 1, content: "🚀 This is an amazing post!", liked: null },
-    { id: 2, content: "🔥 Another exciting update!", liked: null },
+    { id: 1, content: "🚀 Description!", liked: null },
+    { id: 2, content: "🔥 Description!", liked: null },
   ]);
 
   // ✅ Toggle Sidebar
