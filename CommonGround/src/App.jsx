@@ -6,8 +6,9 @@ import Login from "./login";
 import SignUp from "./signup";
 import Dashboard from "./dashboard";
 import HomeScreen from "./homescreen";
+import InterestSelection from "./interestSelection"; 
 
-// Sidebar Pages
+
 import Profile from "./sidebar/profile";
 import Notifications from "./sidebar/notifications";
 import Chat from "./sidebar/chat";
@@ -37,6 +38,7 @@ function AnimatedRoutes({ isSidebarOpen, toggleSidebar }) {
         <Route path="/" element={<HomeScreen />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/interests" element={<InterestSelection onSubmit={(data) => console.log(data)} />} />
 
         {/* Dashboard and Sidebar Pages */}
         <Route path="/dashboard" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Dashboard /></Layout>} />
@@ -53,7 +55,7 @@ function AnimatedRoutes({ isSidebarOpen, toggleSidebar }) {
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const hideSidebarRoutes = ["/login", "/signup"];
+  const hideSidebarRoutes = ["/login", "/signup", "/interests"];
   const shouldShowSidebar = !hideSidebarRoutes.includes(location.pathname);
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);

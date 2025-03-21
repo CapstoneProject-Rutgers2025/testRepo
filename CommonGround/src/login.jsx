@@ -1,9 +1,8 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import googleIcon from "./images/google-icon.png";
-import {GoogleLogin } from "@react-oauth/google";
-import {jwtDecode} from "jwt-decode"; 
+import { GoogleLogin } from "@react-oauth/google";
+import {jwtDecode} from "jwt-decode";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -11,9 +10,10 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
+  // Handle Standard Login with Email and Password
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       const response = await fetch('https://testrepo-hkzu.onrender.com/login', {
         method: 'POST',
@@ -22,12 +22,18 @@ const Login = () => {
         },
         body: JSON.stringify({ email, password }),
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         console.log("Token received:", data.token);
         localStorage.setItem('token', data.token);
-        navigate('/dashboard');
+
+        // Check for first-time login or no tags
+        if (data.firstLogin || (data.tags && data.tags.length === 0)) {
+          navigate('/interests');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         const errorText = await response.text();
         setError('Login failed: ' + errorText);
@@ -39,12 +45,26 @@ const Login = () => {
 
   // Handle Google Login Success
   const handleGoogleLoginSuccess = (credentialResponse) => {
-    const decodedToken = jwtDecode(credentialResponse.credential);
-    console.log("Google User Info:", decodedToken);
+    try {
+      const decodedToken = jwtDecode(credentialResponse.credential);
+      console.log("Google User Info:", decodedToken);
 
-    // Store the token and redirect
-    localStorage.setItem("token", credentialResponse.credential);
-    navigate("/dashboard");
+      // Store the token and redirect
+      localStorage.setItem("token", credentialResponse.credential);
+
+      // Mock data for first-time login or no tags
+      const isFirstLogin = decodedToken.firstLogin || true; // Replace with actual logic
+      const hasTags = decodedToken.tags && decodedToken.tags.length > 0;
+
+      if (isFirstLogin || !hasTags) {
+        navigate("/interests");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Error decoding Google token:", error);
+      setError("Google Sign-In Failed. Please try again.");
+    }
   };
 
   // Handle Google Login Failure
