@@ -7,6 +7,7 @@ import SignUp from "./signup";
 import Dashboard from "./dashboard";
 import HomeScreen from "./homescreen";
 import InterestSelection from "./interestSelection"; 
+import CreatePost from "./CreatePost";
 
 
 import Profile from "./sidebar/profile";
@@ -16,6 +17,7 @@ import Updates from "./sidebar/updates";
 import Help from "./sidebar/help";
 import Sidebar from "./sidebar/side";
 import Navbar from "./navbar";
+
 
 function Layout({ children, isSidebarOpen, toggleSidebar }) {
   return (
@@ -47,6 +49,7 @@ function AnimatedRoutes({ isSidebarOpen, toggleSidebar }) {
         <Route path="/chat" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Chat /></Layout>} />
         <Route path="/updates" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Updates /></Layout>} />
         <Route path="/help" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Help /></Layout>} />
+        <Route path="/create-post" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><CreatePost /></Layout>} />
       </Routes>
     </AnimatePresence>
   );

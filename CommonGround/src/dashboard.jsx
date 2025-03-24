@@ -132,6 +132,7 @@ const Dashboard = () => {
             className="create-post-btn"
             whileHover={{ scale: 1.2, rotate: 10 }}
             transition={{ duration: 0.2 }}
+            onClick={() => navigate("/create-post")} 
           >
             <FaPlus />
           </motion.button>
