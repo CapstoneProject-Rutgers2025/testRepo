@@ -8,6 +8,7 @@ import { pool } from './db/db.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv'
 import { getUserByEmail } from './concepts/Queries.js';
+import { createUserProfilesTable, insertUserProfile, updateUserProfile, getUserProfile } from './concepts/Queries.js';
 
 //setting up express
 const app = express();
@@ -56,6 +57,47 @@ app.post('/login', async (req, res) => {
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
         res.status(500).send('Server error: ' + error.message);
+    }
+});
+
+// Create the user_profiles table
+createUserProfilesTable();
+
+// Route to user profile
+app.post('/profile', async (req, res) => {
+    const { userId, profilePicture, description } = req.body;
+    try {
+        await insertUserProfile(userId, profilePicture, description);
+        res.status(201).send('Profile created successfully!');
+    } catch (err) {
+        res.status(500).send('Error creating profile: ' + err.message);
+    }
+});
+
+// Route to update profile
+app.put('/profile/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const { profilePicture, description } = req.body;
+    try {
+        await updateUserProfile(userId, profilePicture, description);
+        res.status(200).send('Profile updated successfully!');
+    } catch (err) {
+        res.status(500).send('Error updating profile: ' + err.message);
+    }
+});
+
+// Route to fetch profile
+app.get('/profile/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const profile = await getUserProfile(userId);
+        if (profile) {
+            res.status(200).json(profile);
+        } else {
+            res.status(404).send('Profile not found');
+        }
+    } catch (err) {
+        res.status(500).send('Error fetching profile: ' + err.message);
     }
 });
 

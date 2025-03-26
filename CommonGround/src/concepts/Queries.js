@@ -19,6 +19,25 @@ async function createUsersTable() {
     }
 }
 
+async function createUserProfilesTable() {
+    const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS user_profiles (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        profile_picture TEXT, -- URL or base64-encoded image data
+        description TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    )
+    `;
+    try {
+        await pool.query(createTableQuery);
+        console.log("User profiles table created successfully!");
+    } catch (err) {
+        console.error('Error creating user profiles table!', err);
+    }
+}
+
 async function isPasswordDuplicate(password) {
     const hashedPasswords = await pool.query("SELECT password FROM users");
     
@@ -42,12 +61,51 @@ async function insertUser(username, email, password) {
     }
 }
 
+async function insertUserProfile(userId, profilePicture, description) {
+    try {
+        await pool.query(
+            "INSERT INTO user_profiles (user_id, profile_picture, description) VALUES ($1, $2, $3)",
+            [userId, profilePicture, description]
+        );
+        console.log("User profile created successfully!");
+    } catch (err) {
+        console.error('Error creating user profile!', err);
+        throw err;
+    }
+}
+
+async function updateUserProfile(userId, profilePicture, description) {
+    try {
+        await pool.query(
+            "UPDATE user_profiles SET profile_picture = $1, description = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3",
+            [profilePicture, description, userId]
+        );
+        console.log("User profile updated successfully!");
+    } catch (err) {
+        console.error('Error updating user profile!', err);
+        throw err;
+    }
+}
+
 async function getUserByEmail(email) {
     try {
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         return result.rows[0];
     } catch (err) {
         console.error('Error fetching user by email:', err);
+        throw err;
+    }
+}
+
+async function getUserProfile(userId) {
+    try {
+        const result = await pool.query(
+            "SELECT * FROM user_profiles WHERE user_id = $1",
+            [userId]
+        );
+        return result.rows[0];
+    } catch (err) {
+        console.error('Error fetching user profile!', err);
         throw err;
     }
 }
@@ -69,4 +127,14 @@ async function createUser(username, email, password) {
     }
 }
 
-export { createUsersTable, createUser, insertUser, isPasswordDuplicate, getUserByEmail }; 
+export {
+    createUsersTable,
+    createUserProfilesTable,
+    createUser,
+    insertUser,
+    isPasswordDuplicate,
+    getUserByEmail,
+    insertUserProfile,
+    updateUserProfile,
+    getUserProfile
+};
