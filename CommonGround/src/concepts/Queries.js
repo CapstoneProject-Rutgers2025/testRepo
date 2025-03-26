@@ -159,7 +159,7 @@ async function getUserProfile(userId) {
         );
         return result.rows[0];
     } catch (err) {
-        console.error('Error fetching user profile!', err);
+        console.error('Error fetching user profile:', err);
         throw err;
     }
 }

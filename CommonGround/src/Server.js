@@ -66,13 +66,18 @@ app.post('/login', async (req, res) => {
 createUserProfilesTable();
 
 // Route to user profile
-app.post('/profile', async (req, res) => {
-    const { userId, profilePicture, description } = req.body;
+app.get('/profile/:userId', async (req, res) => {
+    const { userId } = req.params;
     try {
-        await insertUserProfile(userId, profilePicture, description);
-        res.status(201).send('Profile created successfully!');
+        const profile = await getUserProfile(userId);
+        if (profile) {
+            res.status(200).json(profile);
+        } else {
+            res.status(404).send('Profile not found');
+        }
     } catch (err) {
-        res.status(500).send('Error creating profile: ' + err.message);
+        console.error('Error fetching profile:', err);
+        res.status(500).send('Error fetching profile');
     }
 });
 
