@@ -123,7 +123,7 @@ async function insertUserProfile(userId, profilePicture, bio, tags, activeGroups
         );
         console.log("User profile created successfully!");
     } catch (err) {
-        console.error('Error creating user profile!', err);
+        console.error('Error creating user profile:', err);
         throw err;
     }
 }
