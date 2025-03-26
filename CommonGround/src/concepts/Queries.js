@@ -25,7 +25,10 @@ async function createUserProfilesTable() {
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         profile_picture TEXT, -- URL or base64-encoded image data
-        description TEXT,
+        bio TEXT,
+        tags TEXT[], -- Array of tags
+        active_groups INTEGER DEFAULT 0,
+        inactive_groups INTEGER DEFAULT 0,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
@@ -35,6 +38,57 @@ async function createUserProfilesTable() {
         console.log("User profiles table created successfully!");
     } catch (err) {
         console.error('Error creating user profiles table!', err);
+    }
+}
+
+async function createUserInterestsTable() {
+    const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS user_interests (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        interest VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    )
+    `;
+    try {
+        await pool.query(createTableQuery);
+        console.log("User interests table created successfully!");
+    } catch (err) {
+        console.error('Error creating user interests table!', err);
+    }
+}
+
+async function insertUserInterests(userId, interests) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        for (const interest of interests) {
+            await client.query(
+                "INSERT INTO user_interests (user_id, interest) VALUES ($1, $2)",
+                [userId, interest]
+            );
+        }
+        await client.query('COMMIT');
+        console.log("User interests added successfully!");
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Error adding user interests!', err);
+        throw err;
+    } finally {
+        client.release();
+    }
+}
+
+async function getUserInterests(userId) {
+    try {
+        const result = await pool.query(
+            "SELECT interest FROM user_interests WHERE user_id = $1",
+            [userId]
+        );
+        return result.rows.map(row => row.interest);
+    } catch (err) {
+        console.error('Error fetching user interests!', err);
+        throw err;
     }
 }
 
@@ -61,11 +115,11 @@ async function insertUser(username, email, password) {
     }
 }
 
-async function insertUserProfile(userId, profilePicture, description) {
+async function insertUserProfile(userId, profilePicture, bio, tags, activeGroups, inactiveGroups) {
     try {
         await pool.query(
-            "INSERT INTO user_profiles (user_id, profile_picture, description) VALUES ($1, $2, $3)",
-            [userId, profilePicture, description]
+            "INSERT INTO user_profiles (user_id, profile_picture, bio, tags, active_groups, inactive_groups) VALUES ($1, $2, $3, $4, $5, $6)",
+            [userId, profilePicture, bio, tags, activeGroups, inactiveGroups]
         );
         console.log("User profile created successfully!");
     } catch (err) {
@@ -74,11 +128,11 @@ async function insertUserProfile(userId, profilePicture, description) {
     }
 }
 
-async function updateUserProfile(userId, profilePicture, description) {
+async function updateUserProfile(userId, profilePicture, bio, tags, activeGroups, inactiveGroups) {
     try {
         await pool.query(
-            "UPDATE user_profiles SET profile_picture = $1, description = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3",
-            [profilePicture, description, userId]
+            "UPDATE user_profiles SET profile_picture = $1, bio = $2, tags = $3, active_groups = $4, inactive_groups = $5, updated_at = CURRENT_TIMESTAMP WHERE user_id = $6",
+            [profilePicture, bio, tags, activeGroups, inactiveGroups, userId]
         );
         console.log("User profile updated successfully!");
     } catch (err) {
@@ -130,11 +184,14 @@ async function createUser(username, email, password) {
 export {
     createUsersTable,
     createUserProfilesTable,
+    createUserInterestsTable,
     createUser,
     insertUser,
     isPasswordDuplicate,
     getUserByEmail,
     insertUserProfile,
     updateUserProfile,
-    getUserProfile
+    getUserProfile,
+    insertUserInterests,
+    getUserInterests
 };

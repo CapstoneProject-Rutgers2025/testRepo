@@ -9,6 +9,8 @@ import bcrypt from 'bcrypt';
 import dotenv from 'dotenv'
 import { getUserByEmail } from './concepts/Queries.js';
 import { createUserProfilesTable, insertUserProfile, updateUserProfile, getUserProfile } from './concepts/Queries.js';
+import { createUserInterestsTable, insertUserInterests, getUserInterests } from './concepts/Queries.js';
+
 
 //setting up express
 const app = express();
@@ -77,9 +79,9 @@ app.post('/profile', async (req, res) => {
 // Route to update profile
 app.put('/profile/:userId', async (req, res) => {
     const { userId } = req.params;
-    const { profilePicture, description } = req.body;
+    const { profilePicture, bio, tags, activeGroups, inactiveGroups } = req.body;
     try {
-        await updateUserProfile(userId, profilePicture, description);
+        await updateUserProfile(userId, profilePicture, bio, tags, activeGroups, inactiveGroups);
         res.status(200).send('Profile updated successfully!');
     } catch (err) {
         res.status(500).send('Error updating profile: ' + err.message);
@@ -98,6 +100,31 @@ app.get('/profile/:userId', async (req, res) => {
         }
     } catch (err) {
         res.status(500).send('Error fetching profile: ' + err.message);
+    }
+});
+
+// Create the user_interests table
+createUserInterestsTable();
+
+// Route to add user interests
+app.post('/interests', async (req, res) => {
+    const { userId, interests } = req.body; // `interests` is an array of strings
+    try {
+        await insertUserInterests(userId, interests);
+        res.status(201).send('Interests added successfully!');
+    } catch (err) {
+        res.status(500).send('Error adding interests: ' + err.message);
+    }
+});
+
+// Route to fetch user interests
+app.get('/interests/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const interests = await getUserInterests(userId);
+        res.status(200).json(interests);
+    } catch (err) {
+        res.status(500).send('Error fetching interests: ' + err.message);
     }
 });
 

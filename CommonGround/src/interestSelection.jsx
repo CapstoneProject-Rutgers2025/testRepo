@@ -1,17 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';  // Import useNavigate
 import './interestSelection.css';
+import jwtDecode from 'jwt-decode';  // Import jwtDecode
 
-const interests = [
-  "Resume Development", "Movies", "Fashion", "Activism", 
-  "Baking", "Books", "Photography", "Cars", 
-  "Art", "Parenting", "News"
+const availableInterests = [
+  'Art',
+  'Baking',
+  'Cooking',
+  'Dance',
+  'Fashion',
+  'Fitness',
+  'Gaming',
+  'Music',
+  'Photography',
+  'Reading',
+  'Sports',
+  'Travel',
 ];
 
 const InterestSelection = () => {
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
-  const navigate = useNavigate();  // Initialize navigate
+  const navigate = useNavigate();
+
+  // Decode the token to get the userId
+  const token = localStorage.getItem('token');
+  const decodedToken = token ? jwtDecode(token) : null;
+  const userId = decodedToken ? decodedToken.id : null;
 
   const handleInterestClick = (interest) => {
     if (selectedInterests.includes(interest)) {
@@ -27,14 +42,30 @@ const InterestSelection = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedInterests.length >= 3) {
-      // Perform any API call or data submission here
-      console.log("Selected Interests:", selectedInterests);
-      console.log("Profile Image:", profileImage);
+      try {
+        const response = await fetch('/interests', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId, interests: selectedInterests }),
+        });
 
-      // Navigate to the dashboard after successful submission
-      navigate('/dashboard');
+        if (response.ok) {
+          console.log("Selected Interests:", selectedInterests);
+          console.log("Profile Image:", profileImage);
+
+          // Navigate to the dashboard after successful submission
+          navigate('/dashboard');
+        } else {
+          alert('Error saving interests. Please try again.');
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Error saving interests. Please try again.');
+      }
     } else {
       alert("Please select at least 3 interests.");
     }
@@ -57,7 +88,7 @@ const InterestSelection = () => {
         />
       </div>
       <div className="interests-container">
-        {interests.map((interest, index) => (
+        {availableInterests.map((interest, index) => (
           <button
             key={index}
             className={`interest ${selectedInterests.includes(interest) ? 'selected' : ''}`}
