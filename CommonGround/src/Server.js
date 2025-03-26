@@ -92,14 +92,15 @@ app.put('/profile/:userId', async (req, res) => {
 app.get('/profile/:userId', async (req, res) => {
     const { userId } = req.params;
     try {
-        const profile = await getUserProfile(userId);
+        const profile = await getUserProfile(userId); // Fetch profile from the database
         if (profile) {
             res.status(200).json(profile);
         } else {
             res.status(404).send('Profile not found');
         }
     } catch (err) {
-        res.status(500).send('Error fetching profile: ' + err.message);
+        console.error('Error fetching profile:', err);
+        res.status(500).send('Error fetching profile');
     }
 });
 

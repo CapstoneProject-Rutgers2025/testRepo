@@ -34,15 +34,18 @@ const Profile = () => {
             inactiveGroups: data.inactive_groups || 0,
           });
         } else {
-          console.error("Error fetching profile");
+          console.error("Error fetching profile:", response.statusText);
+          alert("Error fetching profile. Please try again later.");
         }
       } catch (err) {
         console.error("Error:", err);
+        alert("An error occurred while fetching the profile.");
       }
     };
-
+  
     fetchProfile();
   }, [userId]);
+
 
   // Handle profile updates
   const handleProfileUpdate = async () => {
