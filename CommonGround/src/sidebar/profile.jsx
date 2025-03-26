@@ -17,34 +17,39 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showTags, setShowTags] = useState(false);
 
-  // Fetch user profile data
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await fetch(`/profile/${userId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setUser({
-            name: data.name || "User",
-            bio: data.bio || "No bio available",
-            profilePic: data.profile_picture || "https://via.placeholder.com/100",
-            friends: [], // Fetch friends separately if needed
-            tags: data.tags || [],
-            activeGroups: data.active_groups || 0,
-            inactiveGroups: data.inactive_groups || 0,
-          });
-        } else {
-          console.error("Error fetching profile:", response.statusText);
-          alert("Error fetching profile. Please try again later.");
-        }
-      } catch (err) {
-        console.error("Error:", err);
-        alert("An error occurred while fetching the profile.");
+  const [isLoading, setIsLoading] = useState(true);
+
+useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch(`/profile/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUser({
+          name: data.name || "User",
+          bio: data.bio || "No bio available",
+          profilePic: data.profile_picture || "https://via.placeholder.com/100",
+          friends: [],
+          tags: data.tags || [],
+          activeGroups: data.active_groups || 0,
+          inactiveGroups: data.inactive_groups || 0,
+        });
+      } else {
+        console.error("Error fetching profile:", response.statusText);
       }
-    };
-  
-    fetchProfile();
-  }, [userId]);
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchProfile();
+}, [userId]);
+
+if (isLoading) {
+  return <p>Loading...</p>;
+}
 
 
   // Handle profile updates
