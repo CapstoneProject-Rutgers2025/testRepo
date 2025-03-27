@@ -181,6 +181,62 @@ async function createUser(username, email, password) {
     }
 }
 
+async function createPostsTable() {
+    const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS posts (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
+        image_url TEXT, -- New column for image URL
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    )
+    `;
+    try {
+        await pool.query(createTableQuery);
+        console.log("Posts table created successfully!");
+    } catch (err) {
+        console.error('Error creating posts table!', err);
+    }
+}
+
+// Insert a new post
+async function insertPost(title, content, image_url, user_id) {
+    const insertQuery = `
+        INSERT INTO posts (title, content, image_url, user_id)
+        VALUES ($1, $2, $3, $4) RETURNING id;
+    `;
+    try {
+        const result = await pool.query(insertQuery, [title, content, image_url, user_id]);
+        return result.rows[0].id; // Return the ID of the newly created post
+    } catch (err) {
+        console.error('Error inserting post', err);
+        throw err;
+    }
+}
+
+// Get all posts
+async function getPosts() {
+    const getPostsQuery = `
+        SELECT posts.id, posts.title, posts.content, posts.image_url, posts.created_at, users.id as user_id, users.username AS user_name 
+        FROM posts
+        JOIN users ON posts.user_id = users.id
+        ORDER BY posts.created_at DESC;
+    `;
+    try {
+        const result = await pool.query(getPostsQuery);
+        return result.rows; // Return all posts
+    } catch (err) {
+        console.error('Error retrieving posts', err);
+        throw err;
+    }
+}
+
+
+
+
+
+
 export {
     createUsersTable,
     createUserProfilesTable,
@@ -193,5 +249,8 @@ export {
     updateUserProfile,
     getUserProfile,
     insertUserInterests,
-    getUserInterests
+    getUserInterests,
+    createPostsTable,
+    insertPost,
+    getPosts
 };

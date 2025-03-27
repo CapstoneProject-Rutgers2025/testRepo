@@ -10,6 +10,7 @@ import dotenv from 'dotenv'
 import { getUserByEmail } from './concepts/Queries.js';
 import { createUserProfilesTable, insertUserProfile, updateUserProfile, getUserProfile } from './concepts/Queries.js';
 import { createUserInterestsTable, insertUserInterests, getUserInterests } from './concepts/Queries.js';
+import { createPostsTable, insertPost, getPosts } from './concepts/Queries.js';
 
 
 //setting up express
@@ -156,3 +157,28 @@ async function runAllQueries() {
     await testQueries();
 }
 testQueries();
+
+
+createPostsTable();
+
+app.post('/posts', async (req, res) => {
+    const { title, content, image_url, user_id } = req.body;
+    try {
+        const postId = await insertPost(title, content, image_url, user_id);
+        res.status(201).json({ message: 'Post created successfully', postId });
+    } catch (err) {
+        res.status(500).json({ message: 'Error creating post', error: err.message });
+    }
+});
+
+
+app.get('/posts', async (req, res) => {
+    try {
+        const posts = await getPosts();
+        res.status(200).json(posts);
+    } catch (err) {
+        res.status(500).json({ message: 'Error retrieving posts', error: err.message });
+    }
+});
+
+
