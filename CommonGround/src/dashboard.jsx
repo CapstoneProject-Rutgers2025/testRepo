@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { motion, AnimatePresence,useTransform, useMotionValue} from "framer-motion";
+import { motion, AnimatePresence} from "framer-motion";
 import { FaPlus, FaTimes, FaCheck } from "react-icons/fa";
 import Sidebar from "./sidebar/side"; 
 import "./dashboard.css";
@@ -14,16 +14,15 @@ const Dashboard = () => {
     { id: 1, content: "🚀 Description!", liked: null },
     { id: 2, content: "🔥 Description!", liked: null },
   ]);
-  const x = useMotionValue(0); // 🧲 Tracks drag movement
-  const rotate = useTransform(x, [-300, 0, 300], [-15, 0, 15]); // 🌀 Maps x to angle
+
   
 
-  // ✅ Toggle Sidebar
+
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
   };
 
-  // ✅ Authentication Check
+ 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
