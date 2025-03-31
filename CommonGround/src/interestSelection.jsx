@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';  // Import useNavigate
 import './interestSelection.css';
-import { jwtDecode } from 'jwt-decode';  // Import jwtDecode
+import { jwtDecode } from 'jwt-decode';  
 
 const availableInterests = [
   'Art',
@@ -41,10 +40,8 @@ const InterestSelection = () => {
       setProfileImage(URL.createObjectURL(event.target.files[0]));
     }
   };
-
   const handleSubmit = async () => {
-    if (selectedInterests.length >= 3) {
-      try {
+            /*
         const response = await fetch('/interests', {
           method: 'POST',
           headers: {
@@ -52,16 +49,18 @@ const InterestSelection = () => {
           },
           body: JSON.stringify({ userId, interests: selectedInterests }),
         });
-
-        if (response.ok) {
-          console.log("Selected Interests:", selectedInterests);
-          console.log("Profile Image:", profileImage);
-
-          // Navigate to the dashboard after successful submission
-          navigate('/dashboard');
-        } else {
-          alert('Error saving interests. Please try again.');
-        }
+        
+        */
+    if (selectedInterests.length >= 3) {
+      try {
+        
+        console.log("Selected Interests:", selectedInterests);
+        console.log("Profile Image:", profileImage);
+  
+  
+        
+        navigate('/dashboard');
+  
       } catch (err) {
         console.error('Error:', err);
         alert('Error saving interests. Please try again.');
@@ -70,6 +69,9 @@ const InterestSelection = () => {
       alert("Please select at least 3 interests.");
     }
   };
+  
+
+  
 
   return (
     <div className="interest-selection">

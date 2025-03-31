@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence,useTransform, useMotionValue} from "framer-motion";
 import { FaPlus, FaTimes, FaCheck } from "react-icons/fa";
 import Sidebar from "./sidebar/side"; 
 import "./dashboard.css";
@@ -14,6 +14,9 @@ const Dashboard = () => {
     { id: 1, content: "🚀 Description!", liked: null },
     { id: 2, content: "🔥 Description!", liked: null },
   ]);
+  const x = useMotionValue(0); // 🧲 Tracks drag movement
+  const rotate = useTransform(x, [-300, 0, 300], [-15, 0, 15]); // 🌀 Maps x to angle
+  
 
   // ✅ Toggle Sidebar
   const toggleSidebar = () => {
@@ -39,7 +42,7 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  // ✅ Handle Swipe (X or ✔)
+  
   const handleSwipe = (id, liked) => {
     setPosts((prev) => {
       const swipedPost = prev.find((post) => post.id === id);
@@ -79,19 +82,36 @@ const Dashboard = () => {
         <div className="post-container">
           <AnimatePresence>
             {posts.length > 0 && (
-              <motion.div
-              key={posts[0].id}
-              className="post-card"
-              drag="x"
-              dragConstraints={{ left: -100, right: 100 }}
-              initial={{ opacity: 1, scale: 1 }}
-              exit={{
-                opacity: 0,
-                scale: 0.9,
-                x: posts[0].liked ? 200 : -200,
-              }}
-              transition={{ duration: 0.3 }}
-            >
+             <motion.div
+             key={posts[0].id}
+             className="post-card"
+             drag="x"
+             dragConstraints={{ left: 0, right: 0 }}
+             dragElastic={1.2} //  Looseness 
+             whileDrag={{ rotate: 5, scale: 1.03 }} 
+             initial={{ opacity: 1 }}
+             exit={{
+               opacity: 0,
+               x: posts[0].liked === true ? 500 : posts[0].liked === false ? -500 : 0,
+               rotate: 0,
+               transition: { duration: 0.3 },
+             }}
+             onDragEnd={(e, info) => {
+               const offset = info.offset.x;
+               const velocity = info.velocity.x;
+           
+               
+               const swipeThreshold = 250;//how far to go 
+           
+               if (offset > swipeThreshold) {
+                 handleSwipe(posts[0].id, true); 
+               } else if (offset < -swipeThreshold) {
+                 handleSwipe(posts[0].id, false); 
+               }
+             }}
+           >
+           
+            
               {/* Profile Picture */}
               <div className="profile-picture"></div>
             
@@ -101,25 +121,8 @@ const Dashboard = () => {
               {/* Post Description */}
               <p className="post-description">{posts[0].content}</p>
             
-              {/* Accept & Reject Buttons */}
-              <div className="post-actions">
-                <motion.button
-                  className="reject-button"
-                  onClick={() => handleSwipe(posts[0].id, false)}
-                  whileHover={{ scale: 1.3 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <FaTimes />
-                </motion.button>
-                <motion.button
-                  className="accept-button"
-                  onClick={() => handleSwipe(posts[0].id, true)}
-                  whileHover={{ scale: 1.3 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <FaCheck />
-                </motion.button>
-              </div>
+              
+              
             </motion.div>
             
             )}
