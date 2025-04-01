@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './interestSelection.css';
 import { jwtDecode } from 'jwt-decode';  
+import { useNavigate } from 'react-router-dom';
+
 
 const availableInterests = [
   'Art',
