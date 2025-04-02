@@ -2,14 +2,13 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import googleIcon from "./images/google-icon.png";
 import { GoogleLogin } from "@react-oauth/google";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-
 
   // Handle Standard Login with Email and Password
   const handleSubmit = async (e) => {
@@ -26,13 +25,16 @@ const Login = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Token received:", data.token);
+        console.log("Full Login response data:", data);  // Log entire response
+
         localStorage.setItem('token', data.token);
 
         // Check for first-time login or no tags
         if (data.firstLogin || (data.tags && data.tags.length === 0)) {
+          console.log("Redirecting to /interests");
           navigate('/interests');
         } else {
+          console.log("Redirecting to /dashboard");
           navigate('/dashboard');
         }
       } else {
@@ -125,18 +127,17 @@ const Login = () => {
 
             {/* Google Login Button */}
             <GoogleLogin
-            onSuccess={handleGoogleLoginSuccess}
-            onError={handleGoogleLoginFailure}
-            useOneTap
-            theme="outline"
-            size="large"
-            width="100%"
-            shape="pill"
-            text="continue_with"
-            locale="en_US"
-            ux_mode="popup"
-          />
-
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginFailure}
+              useOneTap
+              theme="outline"
+              size="large"
+              width="100%"
+              shape="pill"
+              text="continue_with"
+              locale="en_US"
+              ux_mode="popup"
+            />
           </form>
         </div>
       </div>
