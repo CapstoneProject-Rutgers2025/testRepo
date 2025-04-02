@@ -41,15 +41,18 @@ const SignUp = () => {
         }
     };
 
-    // Handle Google Sign-Up Success
     const handleGoogleSignupSuccess = (credentialResponse) => {
-        const decodedToken = jwtDecode(credentialResponse.credential);
-        console.log("Google User Info:", decodedToken);
-
-        // Store the token and redirect
-        localStorage.setItem("token", credentialResponse.credential);
-        navigate("/dashboard");
+        try {
+            const decodedToken = jwtDecode(credentialResponse.credential);
+            console.log("Google User Info:", decodedToken);
+            localStorage.setItem("token", credentialResponse.credential);
+            navigate("/dashboard");
+        } catch (err) {
+            console.error("Error decoding Google token:", err);
+            setError("Google Sign-Up Failed. Please try again.");
+        }
     };
+    
 
     // Handle Google Sign-Up Failure
     const handleGoogleSignupFailure = () => {
