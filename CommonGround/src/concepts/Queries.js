@@ -20,16 +20,38 @@ async function createUsersTable() {
 }
 
 async function populateUserProfiles() {
+    const adjectives = [
+        "Genius", "Crazy", "Wacky", "Silly", "Brilliant", "Quirky", "Zany", "Nerdy", "Hyper", "Funky"
+    ];
+    const nouns = [
+        "Nerd", "Wizard", "Gamer", "Coder", "Artist", "Thinker", "Dreamer", "Creator", "Explorer", "Inventor"
+    ];
+
     const insertDefaultProfilesQuery = `
-        INSERT INTO user_profiles (user_id, profile_picture, bio, tags, active_groups, inactive_groups)
-        SELECT users.id, NULL, NULL, ARRAY[]::TEXT[], 0, 0
+        INSERT INTO user_profiles (user_id, name, profile_picture, bio, tags, active_groups, inactive_groups)
+        SELECT 
+            users.id, 
+            (
+                ARRAY[
+                    ${adjectives.map(adj => `'${adj}'`).join(",")}
+                ][floor(random() * ${adjectives.length}) + 1] || 
+                ARRAY[
+                    ${nouns.map(noun => `'${noun}'`).join(",")}
+                ][floor(random() * ${nouns.length}) + 1] || 
+                floor(random() * 100 + 1)::TEXT
+            ) AS name, -- Generate random wacky name
+            NULL, 
+            NULL, 
+            ARRAY[]::TEXT[], 
+            0, 
+            0
         FROM users
         LEFT JOIN user_profiles ON users.id = user_profiles.user_id
         WHERE user_profiles.user_id IS NULL;
     `;
     try {
         await pool.query(insertDefaultProfilesQuery);
-        console.log("Default profiles added for users without profiles!");
+        console.log("Default profiles with wacky names added for users without profiles!");
     } catch (err) {
         console.error("Error populating user profiles:", err);
         throw err;
@@ -41,11 +63,10 @@ async function createUserProfilesTable() {
     CREATE TABLE IF NOT EXISTS user_profiles (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name VARCHAR(100), 
         profile_picture TEXT, -- URL or base64-encoded image data
         bio TEXT,
         tags TEXT[], -- Array of tags
-        active_groups INTEGER DEFAULT 0,
-        inactive_groups INTEGER DEFAULT 0,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
