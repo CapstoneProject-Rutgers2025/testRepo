@@ -1,79 +1,116 @@
-import React, { useState } from 'react';
-import './interestSelection.css';
-import { jwtDecode } from 'jwt-decode';  
+import React, { useState, useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
-
+import './interestSelection.css';
 
 const availableInterests = [
-  'Art',
-  'Baking',
-  'Cooking',
-  'Dance',
-  'Fashion',
-  'Fitness',
-  'Gaming',
-  'Music',
-  'Photography',
-  'Reading',
-  'Sports',
-  'Travel',
+  'Art', 'Baking', 'Cooking', 'Dance', 'Fashion', 'Fitness',
+  'Gaming', 'Music', 'Photography', 'Reading', 'Sports', 'Travel'
 ];
 
 const InterestSelection = () => {
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
 
-  // Decode the token to get the userId
-  const token = localStorage.getItem('token');
-  const decodedToken = token ? jwtDecode(token) : null;
-  const userId = decodedToken ? decodedToken.id : null;
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setUserId(decodedToken.id);
+    } else {
+      alert('Please log in first.');
+      navigate('/login');
+    }
+  }, [navigate]);
 
   const handleInterestClick = (interest) => {
-    if (selectedInterests.includes(interest)) {
-      setSelectedInterests(selectedInterests.filter(item => item !== interest));
-    } else {
-      setSelectedInterests([...selectedInterests, interest]);
-    }
+    setSelectedInterests(prevInterests =>
+      prevInterests.includes(interest)
+        ? prevInterests.filter(item => item !== interest)
+        : [...prevInterests, interest]
+    );
   };
 
   const handleImageUpload = (event) => {
     if (event.target.files.length > 0) {
-      setProfileImage(URL.createObjectURL(event.target.files[0]));
+      const file = event.target.files[0];
+      setImageFile(file);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
-  const handleSubmit = async () => {
-            /*
-        const response = await fetch('/interests', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId, interests: selectedInterests }),
-        });
-        
-        */
-    if (selectedInterests.length >= 3) {
-      try {
-        
-        console.log("Selected Interests:", selectedInterests);
-        console.log("Profile Image:", profileImage);
-  
-  
-        
-        navigate('/dashboard');
-  
-      } catch (err) {
-        console.error('Error:', err);
-        alert('Error saving interests. Please try again.');
-      }
-    } else {
-      alert("Please select at least 3 interests.");
-    }
-  };
-  
 
-  
+  const handleSubmit = async () => {
+    if (selectedInterests.length < 3) {
+      alert("Please select at least 3 interests.");
+      return;
+    }
+
+    try {
+      let profilePictureUrl = null;
+
+      // Step 1: Upload Profile Picture (if any)
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append("profilePicture", imageFile);
+        formData.append("userId", userId);
+
+        const uploadResponse = await fetch('https://testrepo-hkzu.onrender.com/upload', {
+          method: 'POST',
+          body: formData,
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        const uploadData = await uploadResponse.json();
+        if (uploadResponse.ok) {
+          profilePictureUrl = uploadData.imageUrl;
+        } else {
+          alert("Image upload failed.");
+          return;
+        }
+      }
+
+      // Step 2: Update User Profile
+      const profileResponse = await fetch(`https://testrepo-hkzu.onrender.com/profile`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+        },
+        body: JSON.stringify({ userId, profilePicture: profilePictureUrl })
+      });
+
+      if (!profileResponse.ok) {
+        alert('Error saving profile.');
+        return;
+      }
+
+      // Step 3: Store User Interests in Database
+      const interestsResponse = await fetch(`https://testrepo-hkzu.onrender.com/interests`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+        },
+        body: JSON.stringify({ userId, interests: selectedInterests })
+      });
+
+      if (interestsResponse.ok) {
+        navigate('/dashboard');
+      } else {
+        alert('Error saving interests.');
+      }
+    } catch (err) {
+      alert('Error saving profile and interests.');
+    }
+  };
 
   return (
     <div className="interest-selection">
@@ -91,6 +128,7 @@ const InterestSelection = () => {
           style={{ display: "none" }}
         />
       </div>
+
       <div className="interests-container">
         {availableInterests.map((interest, index) => (
           <button
