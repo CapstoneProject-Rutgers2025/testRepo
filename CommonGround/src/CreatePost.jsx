@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit } from "react-icons/fa";
 import "./CreatePost.css";
+import {jwtDecode} from "jwt-decode";
 
 const CreatePost = () => {
   const [postText, setPostText] = useState("");
@@ -26,8 +27,63 @@ const CreatePost = () => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Post Created:", { text: postText, tags: selectedTags, image });
+  const handleSubmit = async () => {
+    const token = localStorage.getItem("token");
+  
+    if (!token) {
+      console.error("User not authenticated");
+      alert("Please log in first.");
+      return;
+    }
+  
+    try {
+      // Decode the JWT token to get the user ID
+      const decodedToken = jwtDecode(token);
+      const userId = decodedToken.id; 
+      console.log("Decoded Token:", decodedToken);
+      console.log("User ID:", userId);
+  
+  
+      // Prepare the post data with the dynamically retrieved user_id
+      const postData = {
+        title: "Untitled Post",
+        content: postText,
+        image_url: image, 
+        user_id: userId, 
+        tags: selectedTags,
+      };
+  
+      // Send the POST request to create the post
+      const response = await fetch("https://testrepo-hkzu.onrender.com/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, // Include the token in the Authorization header
+        },
+        body: JSON.stringify(postData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to create post: ${errortext}");
+      }
+  
+      const data = await response.json();
+      console.log("Post Created:", data);
+      alert("Post successfully created!");
+  
+      // Reset form after submission
+      setPostText("");
+      setSelectedTags([]);
+      setImage(null);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error creating post:", error.message); 
+        alert(`Error creating post. Please try again. ${error.message}`);
+      } else {
+        console.error("Unexpected error:", error);
+        alert("Unexpected error occurred. Please try again.");
+      }
+    }
   };
 
   return (
