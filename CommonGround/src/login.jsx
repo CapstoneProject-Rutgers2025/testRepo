@@ -10,6 +10,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
+
   // Handle Standard Login with Email and Password
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -124,9 +125,18 @@ const Login = () => {
 
             {/* Google Login Button */}
             <GoogleLogin
-              onSuccess={handleGoogleLoginSuccess}
-              onError={handleGoogleLoginFailure}
-            />
+            onSuccess={handleGoogleLoginSuccess}
+            onError={handleGoogleLoginFailure}
+            useOneTap
+            theme="outline"
+            size="large"
+            width="100%"
+            shape="pill"
+            text="continue_with"
+            locale="en_US"
+            ux_mode="popup"
+          />
+
           </form>
         </div>
       </div>
