@@ -71,31 +71,11 @@ const Profile = () => {
     }
   };
 
-  // Handle profile picture upload
-  const handleImageUpload = (event) => {
-    if (event.target.files.length > 0) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUser({ ...user, profilePic: reader.result });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   return (
     <div className="profile-container">
       <div className="profile-card">
         <div className="profile-pic-container">
           <img src={user.profilePic} alt="Profile" className="profile-pic" />
-          {isEditing && (
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="profile-pic-upload"
-            />
-          )}
         </div>
         <div className="profile-info">
           {isEditing ? (
