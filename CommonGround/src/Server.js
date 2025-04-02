@@ -1,5 +1,4 @@
 import { createUsersTable } from './concepts/Queries.js';
-import { insertUser } from './concepts/Queries.js';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -7,10 +6,8 @@ import jwt from 'jsonwebtoken';
 import { pool } from './db/db.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv'
-import { getUserByEmail } from './concepts/Queries.js';
-import { createUserProfilesTable, insertUserProfile, updateUserProfile, getUserProfile } from './concepts/Queries.js';
-import { createUserInterestsTable, insertUserInterests, getUserInterests } from './concepts/Queries.js';
-import { createPostsTable, insertPost, getPosts } from './concepts/Queries.js';
+import { createUserProfilesTable, insertUserProfile, updateUserProfile, getUserProfile, getUserByEmail, createUserInterestsTable, insertUserInterests, getUserInterests, insertUser, createPostsTable, insertPost, getPosts, populateUserProfiles  } from './concepts/Queries.js';
+
 
 
 //setting up express
@@ -65,6 +62,8 @@ app.post('/login', async (req, res) => {
 
 // Create the user_profiles table
 createUserProfilesTable();
+// Populate user_profiles table with default values
+populateUserProfiles();
 
 // Route to user profile
 app.post('/profile', async (req, res) => {
@@ -80,7 +79,7 @@ app.post('/profile', async (req, res) => {
 });
 
 // Route to update profile
-app.put('/profile', async (req, res) => {
+app.put('/profile/userId', async (req, res) => {
     const { userId } = req.params;
     const { profilePicture, bio, tags, activeGroups, inactiveGroups } = req.body;
     try {
@@ -92,7 +91,7 @@ app.put('/profile', async (req, res) => {
 });
 
 // Route to fetch profile
-app.get('/profile', async (req, res) => {
+app.get('/profile/userId', async (req, res) => {
     const { userId } = req.params;
     try {
         const profile = await getUserProfile(userId); // Fetch profile from the database

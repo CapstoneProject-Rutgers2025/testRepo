@@ -19,6 +19,23 @@ async function createUsersTable() {
     }
 }
 
+async function populateUserProfiles() {
+    const insertDefaultProfilesQuery = `
+        INSERT INTO user_profiles (user_id, profile_picture, bio, tags, active_groups, inactive_groups)
+        SELECT users.id, NULL, NULL, ARRAY[]::TEXT[], 0, 0
+        FROM users
+        LEFT JOIN user_profiles ON users.id = user_profiles.user_id
+        WHERE user_profiles.user_id IS NULL;
+    `;
+    try {
+        await pool.query(insertDefaultProfilesQuery);
+        console.log("Default profiles added for users without profiles!");
+    } catch (err) {
+        console.error("Error populating user profiles:", err);
+        throw err;
+    }
+}
+
 async function createUserProfilesTable() {
     const createTableQuery = `
     CREATE TABLE IF NOT EXISTS user_profiles (
@@ -252,5 +269,6 @@ export {
     getUserInterests,
     createPostsTable,
     insertPost,
-    getPosts
+    getPosts,
+    populateUserProfiles
 };
