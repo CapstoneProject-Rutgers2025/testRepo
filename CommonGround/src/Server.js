@@ -1,23 +1,65 @@
-import { createUsersTable } from './concepts/Queries.js';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
-import { pool } from './db/db.js';
 import bcrypt from 'bcrypt';
-import dotenv from 'dotenv'
-import { createUserProfilesTable, insertUserProfile, updateUserProfile, getUserProfile, getUserByEmail, createUserInterestsTable, insertUserInterests, getUserInterests, insertUser, createPostsTable, insertPost, getPosts, populateUserProfiles  } from './concepts/Queries.js';
+import dotenv from 'dotenv';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import {
+    createUsersTable,
+    createUserProfilesTable, 
+    insertUserProfile, 
+    updateUserProfile, 
+    getUserProfile, 
+    getUserByEmail, 
+    createUserInterestsTable, 
+    insertUserInterests, 
+    getUserInterests, 
+    insertUser, 
+    createPostsTable, 
+    insertPost, 
+    getPosts, 
+    populateUserProfiles
+} from './concepts/Queries.js';
 
+// Get directory name
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+dotenv.config();
 
-//setting up express
+// Setting up Express
 const app = express();
 const port = process.env.PORT || 3000;
 
-// use cors middlware
+// Middleware
 app.use(cors());
-//setting up app parameters
 app.use(bodyParser.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Configure Multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
+
+// Upload Profile Picture
+app.post('/upload', upload.single('profilePicture'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const imageUrl = `/uploads/${req.file.filename}`;
+    res.json({ imageUrl });
+});
+
+// Signup Route
 app.post('/signup', async (req, res) => {
     const { username, email, password } = req.body;
     try {
@@ -31,55 +73,42 @@ app.post('/signup', async (req, res) => {
 // Login Route
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
-
     try {
-        // Fetch the user by email
         const user = await getUserByEmail(email);
-
-        if (!user) {
-            return res.status(404).send('User not found');
-        }
-
-        // Compare the provided password with the stored hashed password
+        if (!user) return res.status(404).send('User not found');
+        
         const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            return res.status(401).send('Invalid credentials');
-        }
-
-        // Generate a JWT token
+        if (!isMatch) return res.status(401).send('Invalid credentials');
+        
         const token = jwt.sign(
-          { id: user.id, full_name: user.username, email: user.email },
-          process.env.JWT_SECRET,
-          { expiresIn: '1h' }
-      );
-
+            { id: user.id, full_name: user.username, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
         res.status(500).send('Server error: ' + error.message);
     }
 });
 
-// Create the user_profiles table
+// Create Tables
 createUserProfilesTable();
-// Populate user_profiles table with default values
 populateUserProfiles();
+createUserInterestsTable();
+createPostsTable();
 
-// Route to user profile
+// Profile Routes
 app.post('/profile', async (req, res) => {
     const { userId, profilePicture, bio, tags, activeGroups, inactiveGroups } = req.body;
-
     try {
         await insertUserProfile(userId, profilePicture, bio, tags, activeGroups, inactiveGroups);
         res.status(201).send('User profile created successfully!');
     } catch (err) {
-        console.error('Error creating user profile:', err);
-        res.status(500).send('Error creating user profile');
+        res.status(500).send('Error creating user profile: ' + err.message);
     }
 });
 
-// Route to update profile
-app.put('/profile/userId', async (req, res) => {
+app.put('/profile/:userId', async (req, res) => {
     const { userId } = req.params;
     const { profilePicture, bio, tags, activeGroups, inactiveGroups } = req.body;
     try {
@@ -90,28 +119,19 @@ app.put('/profile/userId', async (req, res) => {
     }
 });
 
-// Route to fetch profile
-app.get('/profile/userId', async (req, res) => {
+app.get('/profile/:userId', async (req, res) => {
     const { userId } = req.params;
     try {
-        const profile = await getUserProfile(userId); // Fetch profile from the database
-        if (profile) {
-            res.status(200).json(profile);
-        } else {
-            res.status(404).send('Profile not found');
-        }
+        const profile = await getUserProfile(userId);
+        profile ? res.status(200).json(profile) : res.status(404).send('Profile not found');
     } catch (err) {
-        console.error('Error fetching profile:', err);
-        res.status(500).send('Error fetching profile');
+        res.status(500).send('Error fetching profile: ' + err.message);
     }
 });
 
-// Create the user_interests table
-createUserInterestsTable();
-
-// Route to add user interests
+// Interests Routes
 app.post('/interests', async (req, res) => {
-    const { userId, interests } = req.body; // `interests` is an array of strings
+    const { userId, interests } = req.body;
     try {
         await insertUserInterests(userId, interests);
         res.status(201).send('Interests added successfully!');
@@ -120,7 +140,6 @@ app.post('/interests', async (req, res) => {
     }
 });
 
-// Route to fetch user interests
 app.get('/interests/:userId', async (req, res) => {
     const { userId } = req.params;
     try {
@@ -131,35 +150,7 @@ app.get('/interests/:userId', async (req, res) => {
     }
 });
 
-
-//setting up the server
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
-//Testing Queries
-async function testQueries() {
-    try {
-       //await createUsersTable();
-
-      //Testing insertUser
-        //await insertUser('Abdalrhman', 'as@gmail.com', '123');
-        //await insertUser('Eric', 'Eric@gmail.com', '1234')
-        //await insertUser('Yusra', 'Yusra@gmail.com', '12345')
-        //await insertUser('Elijah', 'Elijah@gmail.com', '123456')
-        //await insertUser('Andrew', 'Andrew@gmail.com', '1234567')
-    } catch (err) {
-        console.error('Error creating user!', err);
-    }
-}
-
-async function runAllQueries() {
-    await testQueries();
-}
-testQueries();
-
-
-createPostsTable();
-
+// Posts Routes
 app.post('/posts', async (req, res) => {
     const { title, content, image_url, user_id } = req.body;
     try {
@@ -170,7 +161,6 @@ app.post('/posts', async (req, res) => {
     }
 });
 
-
 app.get('/posts', async (req, res) => {
     try {
         const posts = await getPosts();
@@ -180,4 +170,7 @@ app.get('/posts', async (req, res) => {
     }
 });
 
-
+// Start the server
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
