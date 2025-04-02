@@ -80,7 +80,7 @@ app.post('/profile', async (req, res) => {
 });
 
 // Route to update profile
-app.put('/profile/:userId', async (req, res) => {
+app.put('/profile', async (req, res) => {
     const { userId } = req.params;
     const { profilePicture, bio, tags, activeGroups, inactiveGroups } = req.body;
     try {
@@ -92,7 +92,7 @@ app.put('/profile/:userId', async (req, res) => {
 });
 
 // Route to fetch profile
-app.get('/profile/:userId', async (req, res) => {
+app.get('/profile', async (req, res) => {
     const { userId } = req.params;
     try {
         const profile = await getUserProfile(userId); // Fetch profile from the database
