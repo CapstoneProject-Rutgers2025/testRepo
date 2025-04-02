@@ -35,25 +35,53 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
+
+// Serve static files from the 'uploads' folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Set up Multer for file uploads, storing files in the 'uploads' folder
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+        cb(null, 'uploads/');  // Ensure images are stored in 'uploads/' folder
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+        cb(null, Date.now() + path.extname(file.originalname));  // Use a unique name for each file
     }
 });
-const upload = multer({ storage });
+const upload = multer({
+    storage,
+    fileFilter: (req, file, cb) => {
+      const filetypes = /jpeg|jpg|png|gif/;
+      const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+      const mimetype = filetypes.test(file.mimetype);
+  
+      if (mimetype && extname) {
+        return cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed!'), false);
+      }
+    }
+  });
+  
 
+// Endpoint to handle image uploads
 app.post('/upload', upload.single('profilePicture'), (req, res) => {
     if (!req.file) {
+        console.error('Upload Error: No file uploaded');
         return res.status(400).json({ error: 'No file uploaded' });
     }
-    res.json({ imageUrl: `/uploads/${req.file.filename}` });
+
+    // Generate the URL for the uploaded image
+    const imageUrl = `/uploads/${req.file.filename}`;
+
+    console.log("Uploaded File Details:", req.file);  // Log file details
+    console.log("Generated Image URL:", imageUrl);    // Log the generated URL
+
+    // Return the image URL to the frontend
+    res.json({ imageUrl });
 });
 
+// User signup endpoint
 app.post('/signup', async (req, res) => {
     const { username, email, password } = req.body;
     try {
@@ -64,6 +92,7 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+// User login endpoint
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -93,12 +122,14 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Create the necessary database tables
 createUsersTable();
 populateUserProfiles();
 createUserProfilesTable();
 createUserInterestsTable();
 createPostsTable();
 
+// Create user profile endpoint
 app.post('/profile', async (req, res) => {
     const { userId, profilePicture, bio, tags, activeGroups, inactiveGroups } = req.body;
     try {
@@ -109,6 +140,7 @@ app.post('/profile', async (req, res) => {
     }
 });
 
+// Update user profile endpoint
 app.put('/profile/:userId', async (req, res) => {
     const { userId } = req.params;
     const { profilePicture, bio, tags, activeGroups, inactiveGroups } = req.body;
@@ -120,6 +152,7 @@ app.put('/profile/:userId', async (req, res) => {
     }
 });
 
+// Get user profile endpoint
 app.get('/profile/:userId', async (req, res) => {
     const { userId } = req.params;
     try {
@@ -130,6 +163,7 @@ app.get('/profile/:userId', async (req, res) => {
     }
 });
 
+// Add user interests endpoint
 app.post('/interests', async (req, res) => {
     const { userId, interests } = req.body;
     try {
@@ -140,6 +174,7 @@ app.post('/interests', async (req, res) => {
     }
 });
 
+// Get user interests endpoint
 app.get('/interests/:userId', async (req, res) => {
     const { userId } = req.params;
     try {
@@ -150,6 +185,7 @@ app.get('/interests/:userId', async (req, res) => {
     }
 });
 
+// Create a post endpoint
 app.post('/posts', async (req, res) => {
     const { title, content, image_url, user_id } = req.body;
     try {
@@ -160,6 +196,7 @@ app.post('/posts', async (req, res) => {
     }
 });
 
+// Get all posts endpoint
 app.get('/posts', async (req, res) => {
     try {
         const posts = await getPosts();
@@ -169,6 +206,7 @@ app.get('/posts', async (req, res) => {
     }
 });
 
+// Start the server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
