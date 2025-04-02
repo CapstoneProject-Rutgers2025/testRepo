@@ -52,22 +52,22 @@ const InterestSelection = () => {
       alert("Please select at least 3 interests.");
       return;
     }
-
+  
     try {
       let profilePictureUrl = null;
-
+  
       // Step 1: Upload Profile Picture (if any)
       if (imageFile) {
         const formData = new FormData();
         formData.append("profilePicture", imageFile);
         formData.append("userId", userId);
-
+  
         const uploadResponse = await fetch('https://testrepo-hkzu.onrender.com/upload', {
           method: 'POST',
           body: formData,
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
-
+  
         const uploadData = await uploadResponse.json();
         if (uploadResponse.ok) {
           profilePictureUrl = uploadData.imageUrl;
@@ -76,7 +76,7 @@ const InterestSelection = () => {
           return;
         }
       }
-
+  
       // Step 2: Update User Profile
       const profileResponse = await fetch(`https://testrepo-hkzu.onrender.com/profile`, {
         method: 'POST',
@@ -86,12 +86,12 @@ const InterestSelection = () => {
         },
         body: JSON.stringify({ userId, profilePicture: profilePictureUrl })
       });
-
+  
       if (!profileResponse.ok) {
         alert('Error saving profile.');
         return;
       }
-
+  
       // Step 3: Store User Interests in Database
       const interestsResponse = await fetch(`https://testrepo-hkzu.onrender.com/interests`, {
         method: 'POST',
@@ -99,18 +99,24 @@ const InterestSelection = () => {
           'Content-Type': 'application/json', 
           'Authorization': `Bearer ${localStorage.getItem('token')}` 
         },
-        body: JSON.stringify({ userId, interests: selectedInterests })
+        body: JSON.stringify({ 
+          userId: userId || decodedToken.email, // Fallback to email if userId is missing
+          interests: selectedInterests 
+        })
       });
-
+  
       if (interestsResponse.ok) {
         navigate('/dashboard');
       } else {
-        alert('Error saving interests.');
+        const errorMessage = await interestsResponse.text(); // Get error message
+        alert('Error saving interests: ' + errorMessage);
       }
     } catch (err) {
+      console.error("Interest Save Error:", err);
       alert('Error saving profile and interests.');
     }
   };
+  
 
   return (
     <div className="interest-selection">

@@ -7,7 +7,8 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {
+
+import { 
     createUsersTable,
     createUserProfilesTable, 
     insertUserProfile, 
@@ -21,25 +22,21 @@ import {
     createPostsTable, 
     insertPost, 
     getPosts, 
-    populateUserProfiles
+    populateUserProfiles   
 } from './concepts/Queries.js';
 
-// Get directory name
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-// Setting up Express
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Configure Multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');
@@ -50,16 +47,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Upload Profile Picture
 app.post('/upload', upload.single('profilePicture'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
     }
-    const imageUrl = `/uploads/${req.file.filename}`;
-    res.json({ imageUrl });
+    res.json({ imageUrl: `/uploads/${req.file.filename}` });
 });
 
-// Signup Route
 app.post('/signup', async (req, res) => {
     const { username, email, password } = req.body;
     try {
@@ -70,7 +64,6 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-// Login Route
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -85,19 +78,27 @@ app.post('/login', async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
-        res.status(200).json({ message: 'Login successful', token });
+
+        const interests = await getUserInterests(user.id); 
+        const firstLogin = !interests || interests.length === 0;
+
+        res.status(200).json({
+            message: 'Login successful',
+            token,
+            firstLogin,
+            tags: interests
+        });
     } catch (error) {
         res.status(500).send('Server error: ' + error.message);
     }
 });
 
-// Create Tables
-createUserProfilesTable();
+createUsersTable();
 populateUserProfiles();
+createUserProfilesTable();
 createUserInterestsTable();
 createPostsTable();
 
-// Profile Routes
 app.post('/profile', async (req, res) => {
     const { userId, profilePicture, bio, tags, activeGroups, inactiveGroups } = req.body;
     try {
@@ -129,7 +130,6 @@ app.get('/profile/:userId', async (req, res) => {
     }
 });
 
-// Interests Routes
 app.post('/interests', async (req, res) => {
     const { userId, interests } = req.body;
     try {
@@ -150,7 +150,6 @@ app.get('/interests/:userId', async (req, res) => {
     }
 });
 
-// Posts Routes
 app.post('/posts', async (req, res) => {
     const { title, content, image_url, user_id } = req.body;
     try {
@@ -170,7 +169,6 @@ app.get('/posts', async (req, res) => {
     }
 });
 
-// Start the server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
