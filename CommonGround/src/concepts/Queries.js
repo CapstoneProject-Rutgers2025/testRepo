@@ -28,23 +28,25 @@ async function populateUserProfiles() {
     ];
 
     const insertDefaultProfilesQuery = `
-        INSERT INTO user_profiles (user_id, name, profile_picture, bio, tags, active_groups, inactive_groups)
+        INSERT INTO user_profiles (user_id, name, profile_picture, bio, tags)
         SELECT 
             users.id, 
             (
-                ARRAY[
-                    ${adjectives.map(adj => `'${adj}'`).join(",")}
-                ][floor(random() * ${adjectives.length}) + 1] || 
-                ARRAY[
-                    ${nouns.map(noun => `'${noun}'`).join(",")}
-                ][floor(random() * ${nouns.length}) + 1] || 
-                floor(random() * 100 + 1)::TEXT
-            ) AS name, -- Generate random wacky name
+                SELECT 
+                    CONCAT(
+                        adjectives.adj, 
+                        nouns.noun, 
+                        floor(random() * 100 + 1)::TEXT
+                    )
+                FROM 
+                    (SELECT UNNEST(ARRAY[${adjectives.map(adj => `'${adj}'`).join(",")}]) AS adj) AS adjectives,
+                    (SELECT UNNEST(ARRAY[${nouns.map(noun => `'${noun}'`).join(",")}]) AS noun) AS nouns
+                ORDER BY random()
+                LIMIT 1
+            ) AS name,
             NULL, 
             NULL, 
-            ARRAY[]::TEXT[], 
-            0, 
-            0
+            ARRAY[]::TEXT[]
         FROM users
         LEFT JOIN user_profiles ON users.id = user_profiles.user_id
         WHERE user_profiles.user_id IS NULL;
