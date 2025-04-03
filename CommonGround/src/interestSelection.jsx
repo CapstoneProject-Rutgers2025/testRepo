@@ -11,8 +11,8 @@ const availableInterests = [
 const InterestSelection = () => {
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [message, setMessage] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,11 +20,30 @@ const InterestSelection = () => {
     if (token) {
       const decodedToken = jwtDecode(token);
       setUserId(decodedToken.id);
+      fetchExistingProfile(decodedToken.id);
     } else {
       alert('Please log in first.');
       navigate('/login');
     }
   }, [navigate]);
+
+  const fetchExistingProfile = async (id) => {
+    try {
+      const res = await fetch(`https://testrepo-hkzu.onrender.com/profile/${id}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.profile_picture) {
+        setProfileImage(`https://testrepo-hkzu.onrender.com${data.profile_picture}`);
+      }
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+    }
+  };
+
+  const showMessage = (type, text) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage(null), 3000);
+  };
 
   const handleInterestClick = (interest) => {
     setSelectedInterests(prevInterests =>
@@ -34,23 +53,15 @@ const InterestSelection = () => {
     );
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setProfileImage(URL.createObjectURL(file));
-    }
-  };
+    if (!file) return;
 
-  const uploadProfilePicture = async () => {
-    if (!imageFile) {
-      alert("Please upload a profile picture.");
-      return;
-    }
+    setProfileImage(URL.createObjectURL(file)); // preview
 
     try {
       const formData = new FormData();
-      formData.append('profile_picture', imageFile);
+      formData.append('profile_picture', file);
 
       const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`, {
         method: 'PUT',
@@ -60,20 +71,20 @@ const InterestSelection = () => {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to upload profile picture.");
-      }
+      if (!response.ok) throw new Error("Failed to upload profile picture.");
 
-      alert("Profile picture uploaded successfully!");
+      const data = await response.json();
+      setProfileImage(`https://testrepo-hkzu.onrender.com${data.profilePicture}`);
+      showMessage("success", "Profile picture uploaded successfully!");
     } catch (err) {
       console.error("Error:", err);
-      alert("Error uploading profile picture.");
+      showMessage("error", "Error uploading profile picture.");
     }
   };
 
   const saveInterests = async () => {
     if (selectedInterests.length < 3) {
-      alert("Please select at least 3 interests.");
+      showMessage("error", "Please select at least 3 interests.");
       return;
     }
 
@@ -87,58 +98,58 @@ const InterestSelection = () => {
         body: JSON.stringify({ userId, interests: selectedInterests }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to save interests.");
-      }
+      if (!response.ok) throw new Error("Failed to save interests.");
 
-      alert("Interests saved successfully!");
+      showMessage("success", "Interests saved successfully!");
       navigate('/dashboard');
     } catch (err) {
       console.error("Error:", err);
-      alert("Error saving interests.");
+      showMessage("error", "Error saving interests.");
     }
   };
 
   return (
     <div className="interest-selection">
-      <h2>Select 3+ Interests</h2>
+      <div className="card">
+        <h2>Select 3+ Interests</h2>
 
-      <div className="profile-picture">
-        {profileImage ? (
-          <img src={profileImage} alt="Profile" />
-        ) : (
-          <label htmlFor="profile-upload" className="upload-label">
-            Add profile picture
-          </label>
+        <label className="profile-picture" htmlFor="profile-upload">
+          {profileImage ? (
+            <img src={profileImage} alt="Profile" />
+          ) : (
+            <span className="upload-label">Add profile picture</span>
+          )}
+          <input
+            id="profile-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            style={{ display: "none" }}
+          />
+        </label>
+
+        <div className="interests-container">
+          {availableInterests.map((interest, index) => (
+            <button
+              key={index}
+              className={`interest ${selectedInterests.includes(interest) ? 'selected' : ''}`}
+              onClick={() => handleInterestClick(interest)}
+            >
+              {interest}
+            </button>
+          ))}
+        </div>
+
+        <button onClick={saveInterests} className="submit-button">
+          Save Interests
+        </button>
+
+        {message && (
+          <div className={`message ${message.type}`}>
+            {message.text}
+          </div>
         )}
-        <input
-          id="profile-upload"
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          style={{ display: "none" }}
-        />
       </div>
-
-      <button onClick={uploadProfilePicture} className="submit-button">
-        Upload Profile Picture
-      </button>
-
-      <div className="interests-container">
-        {availableInterests.map((interest, index) => (
-          <button
-            key={index}
-            className={`interest ${selectedInterests.includes(interest) ? 'selected' : ''}`}
-            onClick={() => handleInterestClick(interest)}
-          >
-            {interest}
-          </button>
-        ))}
-      </div>
-
-      <button onClick={saveInterests} className="submit-button">
-        Save Interests
-      </button>
     </div>
   );
 };

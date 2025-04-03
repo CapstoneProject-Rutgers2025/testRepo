@@ -4,6 +4,8 @@ import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import multer from 'multer';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -34,9 +36,22 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
-
-// Serve static files from the 'uploads' folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Setup Multer for profile image upload
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = path.join(__dirname, 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir);
+        }
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
+});
+const upload = multer({ storage });
 
 // Create the necessary database tables
 createUsersTable();
@@ -88,7 +103,7 @@ app.post('/login', async (req, res) => {
 
 // Create user profile endpoint
 app.post('/profile', async (req, res) => {
-    const { userId, profilePicture, bio, tags} = req.body;
+    const { userId, profilePicture, bio, tags } = req.body;
     try {
         await insertUserProfile(userId, profilePicture, bio, tags);
         res.status(201).send('User profile created successfully!');
@@ -97,13 +112,21 @@ app.post('/profile', async (req, res) => {
     }
 });
 
-// Update user profile endpoint
-app.put('/profile/:userId', async (req, res) => {
+// ✅ Update profile with profile picture (FormData support)
+app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) => {
     const { userId } = req.params;
-    const { profilePicture, bio, tags} = req.body;
+
     try {
+        const existing = await getUserProfile(userId);
+        if (!existing) return res.status(404).send('User not found');
+
+        const bio = req.body.bio || existing.description || '';
+        const tags = req.body.tags || existing.tags || '';
+        const profilePicture = req.file ? `/uploads/${req.file.filename}` : existing.profile_picture;
+
         await updateUserProfile(userId, profilePicture, bio, tags);
-        res.status(200).send('Profile updated successfully!');
+
+        res.status(200).json({ message: 'Profile updated successfully!', profilePicture });
     } catch (err) {
         res.status(500).send('Error updating profile: ' + err.message);
     }

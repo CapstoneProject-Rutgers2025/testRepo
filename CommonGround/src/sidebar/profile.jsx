@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 const Profile = () => {
   const { userId } = useParams(); // Get userId from the route params
   const [user, setUser] = useState({
-    name: "User",
+    name: "Unknown User",
     bio: "No bio available",
     profilePic: "https://via.placeholder.com/100",
     tags: [],
@@ -14,19 +14,23 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showTags, setShowTags] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState(null);
 
   // Fetch user profile data from the backend
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`/profile/${userId}`);
+        const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`);
         if (response.ok) {
           const data = await response.json();
+
           setUser({
-            name: data.name || "User",
-            bio: data.bio || "No bio available",
-            profilePic: data.profile_picture || "https://via.placeholder.com/100",
-            tags: data.tags || [],
+            name: data.name || "Unknown User",
+            bio: data.description || "No bio available",
+            profilePic: data.profile_picture
+              ? `https://testrepo-hkzu.onrender.com${data.profile_picture}`
+              : "https://via.placeholder.com/100",
+            tags: data.tags ? (Array.isArray(data.tags) ? data.tags : data.tags.split(",")) : [],
           });
         } else {
           console.error("Error fetching profile:", response.statusText);
@@ -41,35 +45,38 @@ const Profile = () => {
     fetchProfile();
   }, [userId]);
 
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
+  const showMessage = (type, text) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage(null), 3000);
+  };
 
-  // Handle profile updates
   const handleProfileUpdate = async () => {
     try {
-      const response = await fetch(`/profile/${userId}`, {
+      const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          profilePicture: user.profilePic,
+          profilePicture: user.profilePic.replace("https://testrepo-hkzu.onrender.com", ""),
           bio: user.bio,
-          tags: user.tags,
+          tags: user.tags.join(","), // store as comma-separated string
         }),
       });
 
       if (response.ok) {
-        alert("Profile updated successfully!");
+        showMessage("success", "Profile updated successfully!");
         setIsEditing(false);
       } else {
-        alert("Error updating profile");
+        showMessage("error", "Error updating profile.");
       }
     } catch (err) {
       console.error("Error:", err);
+      showMessage("error", "Something went wrong.");
     }
   };
+
+  if (isLoading) return <p>Loading...</p>;
 
   return (
     <div className="profile-container">
@@ -77,26 +84,20 @@ const Profile = () => {
         <div className="profile-pic-container">
           <img src={user.profilePic} alt="Profile" className="profile-pic" />
         </div>
+        <h2 className="profile-username">{user.name}</h2>
+
         <div className="profile-info">
-          {isEditing ? (
-            <input
-              type="text"
-              value={user.name}
-              onChange={(e) => setUser({ ...user, name: e.target.value })}
-              className="profile-name-input"
-            />
-          ) : (
-            <h2>{user.name}</h2>
-          )}
           {isEditing ? (
             <textarea
               value={user.bio}
               onChange={(e) => setUser({ ...user, bio: e.target.value })}
               className="profile-bio-input"
+              placeholder="Write a short bio..."
             />
           ) : (
             <p>{user.bio}</p>
           )}
+
           <button
             className="edit-btn"
             onClick={() => {
@@ -121,32 +122,30 @@ const Profile = () => {
               key={index}
               className="tag-btn"
               onClick={() =>
-                setUser({
-                  ...user,
-                  tags: user.tags.filter((t) => t !== tag),
-                })
+                isEditing
+                  ? setUser({ ...user, tags: user.tags.filter((t) => t !== tag) })
+                  : null
               }
             >
               {tag} {isEditing && "✖"}
             </button>
           ))}
         </div>
+
         {isEditing && (
           <input
             type="text"
             placeholder="Add a tag"
             onKeyDown={(e) => {
               if (e.key === "Enter" && e.target.value.trim() !== "") {
-                setUser({
-                  ...user,
-                  tags: [...user.tags, e.target.value.trim()],
-                });
+                setUser({ ...user, tags: [...user.tags, e.target.value.trim()] });
                 e.target.value = "";
               }
             }}
             className="add-tag-input"
           />
         )}
+
         <button
           className="toggle-tags-btn"
           onClick={() => setShowTags(!showTags)}
@@ -154,6 +153,12 @@ const Profile = () => {
           {showTags ? "Show Less" : "Show More"}
         </button>
       </div>
+
+      {message && (
+        <div className={`message ${message.type}`}>
+          {message.text}
+        </div>
+      )}
     </div>
   );
 };
