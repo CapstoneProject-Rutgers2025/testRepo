@@ -157,8 +157,8 @@ async function insertUser(username, email, password) {
 }
 
 async function insertUserProfile(userId, profilePicture, bio, tags) {
-    // We ignore the provided tags and insert an empty array, as interests are stored in user_interests.
     try {
+        // Always insert an empty array for tags
         await pool.query(
             "INSERT INTO user_profiles (user_id, profile_picture, bio, tags) VALUES ($1, $2, $3, $4)",
             [userId, profilePicture, bio, []]
@@ -171,8 +171,8 @@ async function insertUserProfile(userId, profilePicture, bio, tags) {
 }
 
 async function updateUserProfile(userId, profilePicture, bio) {
-    // Update only profile_picture and bio. Do not update tags.
     try {
+        // Update only profile_picture and bio; leave tags unchanged
         await pool.query(
             "UPDATE user_profiles SET profile_picture = $1, bio = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3",
             [profilePicture, bio, userId]
