@@ -155,11 +155,11 @@ async function insertUser(username, email, password) {
     }
 }
 
-async function insertUserProfile(userId, profilePicture, bio, tags, activeGroups, inactiveGroups) {
+async function insertUserProfile(userId, profilePicture, bio, tags ) {
     try {
         await pool.query(
-            "INSERT INTO user_profiles (user_id, profile_picture, bio, tags, active_groups, inactive_groups) VALUES ($1, $2, $3, $4, $5, $6)",
-            [userId, profilePicture, bio, tags, activeGroups, inactiveGroups]
+            "INSERT INTO user_profiles (user_id, profile_picture, bio, tags) VALUES ($1, $2, $3, $4)",
+            [userId, profilePicture, bio, tags,]
         );
         console.log("User profile created successfully!");
     } catch (err) {
@@ -168,11 +168,11 @@ async function insertUserProfile(userId, profilePicture, bio, tags, activeGroups
     }
 }
 
-async function updateUserProfile(userId, profilePicture, bio, tags, activeGroups, inactiveGroups) {
+async function updateUserProfile(userId, profilePicture, bio, tags) {
     try {
         await pool.query(
-            "UPDATE user_profiles SET profile_picture = $1, bio = $2, tags = $3, active_groups = $4, inactive_groups = $5, updated_at = CURRENT_TIMESTAMP WHERE user_id = $6",
-            [profilePicture, bio, tags, activeGroups, inactiveGroups, userId]
+            "UPDATE user_profiles SET profile_picture = $1, bio = $2, tags = $3, updated_at = CURRENT_TIMESTAMP WHERE user_id = $4",
+            [profilePicture, bio, tags, userId]
         );
         console.log("User profile updated successfully!");
     } catch (err) {
