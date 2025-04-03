@@ -4,15 +4,15 @@ import { pool } from "../db/db.js"; // db.js is the file that connects to the da
 async function createUsersTable() {    
     const createTableQuery = `
     CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password TEXT UNIQUE NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password TEXT UNIQUE NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
     `;
     try {
-       await pool.query(createTableQuery);
+        await pool.query(createTableQuery);
         console.log("Users table created successfully!");
     } catch (err) {
         console.error('Error creating users table!', err);
@@ -66,9 +66,9 @@ async function createUserProfilesTable() {
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         name VARCHAR(100), 
-        profile_picture TEXT, -- URL or base64-encoded image data
+        profile_picture TEXT,
         bio TEXT,
-        tags TEXT[], -- Array of tags
+        tags TEXT[], -- This column is no longer used for interests, as interests are stored in user_interests
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
@@ -142,6 +142,7 @@ async function isPasswordDuplicate(password) {
     }
     return false;
 }
+
 async function insertUser(username, email, password) {
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
@@ -155,11 +156,12 @@ async function insertUser(username, email, password) {
     }
 }
 
-async function insertUserProfile(userId, profilePicture, bio, tags ) {
+async function insertUserProfile(userId, profilePicture, bio, tags) {
+    // We ignore the provided tags and insert an empty array, as interests are stored in user_interests.
     try {
         await pool.query(
             "INSERT INTO user_profiles (user_id, profile_picture, bio, tags) VALUES ($1, $2, $3, $4)",
-            [userId, profilePicture, bio, tags,]
+            [userId, profilePicture, bio, []]
         );
         console.log("User profile created successfully!");
     } catch (err) {
@@ -168,11 +170,12 @@ async function insertUserProfile(userId, profilePicture, bio, tags ) {
     }
 }
 
-async function updateUserProfile(userId, profilePicture, bio, tags) {
+async function updateUserProfile(userId, profilePicture, bio) {
+    // Update only profile_picture and bio. Do not update tags.
     try {
         await pool.query(
-            "UPDATE user_profiles SET profile_picture = $1, bio = $2, tags = $3, updated_at = CURRENT_TIMESTAMP WHERE user_id = $4",
-            [profilePicture, bio, tags, userId]
+            "UPDATE user_profiles SET profile_picture = $1, bio = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3",
+            [profilePicture, bio, userId]
         );
         console.log("User profile updated successfully!");
     } catch (err) {
@@ -228,7 +231,7 @@ async function createPostsTable() {
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         title VARCHAR(255) NOT NULL,
         content TEXT NOT NULL,
-        image_url TEXT, -- New column for image URL
+        image_url TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
     `;
@@ -240,7 +243,6 @@ async function createPostsTable() {
     }
 }
 
-// Insert a new post
 async function insertPost(title, content, image_url, user_id) {
     const insertQuery = `
         INSERT INTO posts (title, content, image_url, user_id)
@@ -248,14 +250,13 @@ async function insertPost(title, content, image_url, user_id) {
     `;
     try {
         const result = await pool.query(insertQuery, [title, content, image_url, user_id]);
-        return result.rows[0].id; // Return the ID of the newly created post
+        return result.rows[0].id;
     } catch (err) {
         console.error('Error inserting post', err);
         throw err;
     }
 }
 
-// Get all posts
 async function getPosts() {
     const getPostsQuery = `
         SELECT posts.id, posts.title, posts.content, posts.image_url, posts.created_at, users.id as user_id, users.username AS user_name 
@@ -265,17 +266,12 @@ async function getPosts() {
     `;
     try {
         const result = await pool.query(getPostsQuery);
-        return result.rows; // Return all posts
+        return result.rows;
     } catch (err) {
         console.error('Error retrieving posts', err);
         throw err;
     }
 }
-
-
-
-
-
 
 export {
     createUsersTable,
