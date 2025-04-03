@@ -61,9 +61,9 @@ const InterestSelection = () => {
 
     try {
       const formData = new FormData();
-      formData.append("profile_picture", file); // ✅ matches backend
+      // Update only the profile picture and bio (if any)
+      formData.append("profile_picture", file);
       formData.append("bio", ""); // optional for now
-      formData.append("tags", JSON.stringify(selectedInterests)); // important for backend parsing
 
       const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`, {
         method: 'PUT',
@@ -101,7 +101,10 @@ const InterestSelection = () => {
       if (!response.ok) throw new Error("Failed to save interests.");
 
       showMessage("success", "Interests saved successfully!");
-      navigate('/dashboard');
+      // Delay navigation to give time to read the success message
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 3000);
     } catch (err) {
       console.error("Error:", err);
       showMessage("error", "Error saving interests.");

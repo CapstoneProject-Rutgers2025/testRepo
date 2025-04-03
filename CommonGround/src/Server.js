@@ -13,7 +13,7 @@ import {
     createUsersTable,
     createUserProfilesTable, 
     insertUserProfile, 
-    updateUserProfile, 
+    updateUserProfile,  // Now expects (userId, profilePicture, bio)
     getUserProfile, 
     getUserByEmail, 
     createUserInterestsTable, 
@@ -112,28 +112,22 @@ app.post('/profile', async (req, res) => {
     }
 });
 
-// ✅ Update profile with profile picture (FormData support)
+// Update profile with profile picture (FormData support)
+// This endpoint now updates only the profile picture and bio.
 app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) => {
     const { userId } = req.params;
-
     try {
         const existing = await getUserProfile(userId);
         if (!existing) return res.status(404).send('User not found');
 
         const bio = req.body.bio || existing.bio || '';
-
-        const tags = req.body.tags
-            ? Array.isArray(req.body.tags)
-                ? req.body.tags
-                : JSON.parse(req.body.tags)
-            : existing.tags || [];
-
         const profilePicture = req.file
             ? `/uploads/${req.file.filename}`
             : existing.profile_picture;
 
-        await updateUserProfile(userId, profilePicture, bio, tags);
-
+        // Update only profile_picture and bio (do not update tags)
+        await updateUserProfile(userId, profilePicture, bio);
+        console.log(`Profile updated for user ${userId}: picture ${profilePicture}, bio ${bio}`);
         res.status(200).json({ message: 'Profile updated successfully!', profilePicture });
     } catch (err) {
         console.error('Error updating profile:', err);
@@ -141,24 +135,33 @@ app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) =
     }
 });
 
-// Get user profile endpoint
+// Get user profile endpoint (updated to include interests from user_interests)
 app.get('/profile/:userId', async (req, res) => {
     const { userId } = req.params;
     try {
         const profile = await getUserProfile(userId);
-        profile ? res.status(200).json(profile) : res.status(404).send('Profile not found');
+        if (!profile) return res.status(404).send('Profile not found');
+
+        // Fetch interests from user_interests table and attach them as tags
+        const interestsRows = await getUserInterests(userId);
+        profile.tags = interestsRows.map(row => row.interest);
+
+        res.status(200).json(profile);
     } catch (err) {
         res.status(500).send('Error fetching profile: ' + err.message);
     }
 });
 
-// Add user interests endpoint
+// Add user interests endpoint (with extra logging)
 app.post('/interests', async (req, res) => {
     const { userId, interests } = req.body;
+    console.log("POST /interests received:", req.body);
     try {
         await insertUserInterests(userId, interests);
+        console.log(`Interests inserted for user ${userId}:`, interests);
         res.status(201).send('Interests added successfully!');
     } catch (err) {
+        console.error("Error in POST /interests:", err);
         res.status(500).send('Error adding interests: ' + err.message);
     }
 });
