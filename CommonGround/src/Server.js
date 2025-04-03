@@ -4,9 +4,8 @@ import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import multer from 'multer';
-import path from 'path';
 import { fileURLToPath } from 'url';
+import path from 'path';
 
 import { 
     createUsersTable,
@@ -39,47 +38,12 @@ app.use(bodyParser.json());
 // Serve static files from the 'uploads' folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Set up Multer for file uploads, storing files in the 'uploads' folder
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');  // Ensure images are stored in 'uploads/' folder
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));  // Use a unique name for each file
-    }
-});
-const upload = multer({
-    storage,
-    fileFilter: (req, file, cb) => {
-      const filetypes = /jpeg|jpg|png|gif/;
-      const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-      const mimetype = filetypes.test(file.mimetype);
-  
-      if (mimetype && extname) {
-        return cb(null, true);
-      } else {
-        cb(new Error('Only image files are allowed!'), false);
-      }
-    }
-  });
-  
-
-// Endpoint to handle image uploads
-app.post('/upload', upload.single('profilePicture'), (req, res) => {
-    if (!req.file) {
-        console.error('Upload Error: No file uploaded');
-        return res.status(400).json({ error: 'No file uploaded' });
-    }
-
-    // Generate the URL for the uploaded image
-    const imageUrl = `/uploads/${req.file.filename}`;
-
-    console.log("Uploaded File Details:", req.file);  // Log file details
-    console.log("Generated Image URL:", imageUrl);    // Log the generated URL
-
-    // Return the image URL to the frontend
-    res.json({ imageUrl });
-});
+// Create the necessary database tables
+createUsersTable();
+populateUserProfiles();
+createUserProfilesTable();
+createUserInterestsTable();
+createPostsTable();
 
 // User signup endpoint
 app.post('/signup', async (req, res) => {
@@ -122,18 +86,11 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Create the necessary database tables
-createUsersTable();
-populateUserProfiles();
-createUserProfilesTable();
-createUserInterestsTable();
-createPostsTable();
-
 // Create user profile endpoint
 app.post('/profile', async (req, res) => {
-    const { userId, profilePicture, bio, tags, activeGroups, inactiveGroups } = req.body;
+    const { userId, profilePicture, bio, tags} = req.body;
     try {
-        await insertUserProfile(userId, profilePicture, bio, tags, activeGroups, inactiveGroups);
+        await insertUserProfile(userId, profilePicture, bio, tags);
         res.status(201).send('User profile created successfully!');
     } catch (err) {
         res.status(500).send('Error creating user profile: ' + err.message);
@@ -143,9 +100,9 @@ app.post('/profile', async (req, res) => {
 // Update user profile endpoint
 app.put('/profile/:userId', async (req, res) => {
     const { userId } = req.params;
-    const { profilePicture, bio, tags, activeGroups, inactiveGroups } = req.body;
+    const { profilePicture, bio, tags} = req.body;
     try {
-        await updateUserProfile(userId, profilePicture, bio, tags, activeGroups, inactiveGroups);
+        await updateUserProfile(userId, profilePicture, bio, tags);
         res.status(200).send('Profile updated successfully!');
     } catch (err) {
         res.status(500).send('Error updating profile: ' + err.message);
