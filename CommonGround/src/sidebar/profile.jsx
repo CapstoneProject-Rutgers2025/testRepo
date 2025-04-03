@@ -23,14 +23,18 @@ const Profile = () => {
         const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`);
         if (response.ok) {
           const data = await response.json();
-
+          console.log("Fetched profile data:", data);
           setUser({
             name: data.name || "Unknown User",
-            bio: data.description || "No bio available",
+            bio: data.bio || "No bio available", // Use data.bio instead of data.description
             profilePic: data.profile_picture
               ? `https://testrepo-hkzu.onrender.com${data.profile_picture}`
               : "https://via.placeholder.com/100",
-            tags: data.tags ? (Array.isArray(data.tags) ? data.tags : data.tags.split(",")) : [],
+            tags: data.tags
+              ? Array.isArray(data.tags)
+                ? data.tags
+                : data.tags.split(",")
+              : [],
           });
         } else {
           console.error("Error fetching profile:", response.statusText);
@@ -58,9 +62,8 @@ const Profile = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          profilePicture: user.profilePic.replace("https://testrepo-hkzu.onrender.com", ""),
           bio: user.bio,
-          tags: user.tags.join(","), // store as comma-separated string
+          tags: user.tags, // send as an array
         }),
       });
 
