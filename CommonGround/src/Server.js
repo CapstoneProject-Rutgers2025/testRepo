@@ -120,14 +120,23 @@ app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) =
         const existing = await getUserProfile(userId);
         if (!existing) return res.status(404).send('User not found');
 
-        const bio = req.body.bio || existing.description || '';
-        const tags = req.body.tags || existing.tags || '';
-        const profilePicture = req.file ? `/uploads/${req.file.filename}` : existing.profile_picture;
+        const bio = req.body.bio || existing.bio || '';
+
+        const tags = req.body.tags
+            ? Array.isArray(req.body.tags)
+                ? req.body.tags
+                : JSON.parse(req.body.tags)
+            : existing.tags || [];
+
+        const profilePicture = req.file
+            ? `/uploads/${req.file.filename}`
+            : existing.profile_picture;
 
         await updateUserProfile(userId, profilePicture, bio, tags);
 
         res.status(200).json({ message: 'Profile updated successfully!', profilePicture });
     } catch (err) {
+        console.error('Error updating profile:', err);
         res.status(500).send('Error updating profile: ' + err.message);
     }
 });

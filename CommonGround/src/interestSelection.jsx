@@ -46,10 +46,10 @@ const InterestSelection = () => {
   };
 
   const handleInterestClick = (interest) => {
-    setSelectedInterests(prevInterests =>
-      prevInterests.includes(interest)
-        ? prevInterests.filter(item => item !== interest)
-        : [...prevInterests, interest]
+    setSelectedInterests(prev =>
+      prev.includes(interest)
+        ? prev.filter(item => item !== interest)
+        : [...prev, interest]
     );
   };
 
@@ -57,11 +57,13 @@ const InterestSelection = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setProfileImage(URL.createObjectURL(file)); // preview
+    setProfileImage(URL.createObjectURL(file)); // Show preview
 
     try {
       const formData = new FormData();
-      formData.append('profile_picture', file);
+      formData.append("profile_picture", file); // ✅ matches backend
+      formData.append("bio", ""); // optional for now
+      formData.append("tags", JSON.stringify(selectedInterests)); // important for backend parsing
 
       const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`, {
         method: 'PUT',
@@ -73,8 +75,6 @@ const InterestSelection = () => {
 
       if (!response.ok) throw new Error("Failed to upload profile picture.");
 
-      const data = await response.json();
-      setProfileImage(`https://testrepo-hkzu.onrender.com${data.profilePicture}`);
       showMessage("success", "Profile picture uploaded successfully!");
     } catch (err) {
       console.error("Error:", err);
