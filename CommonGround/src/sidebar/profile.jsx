@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit } from "react-icons/fa";
+import jwtDecode from "jwt-decode";
 import "./profile.css";
 import { useParams } from "react-router-dom";
 
@@ -20,12 +21,24 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch('https://testrepo-hkzu.onrender.com/profile', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include the token
-          },
-        });
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found");
+          return;
+        }
+
+        const decodedToken = jwtDecode(token);
+        const userId = decodedToken.id; // Extract userId from the token
+
+        const response = await fetch(
+          `https://testrepo-hkzu.onrender.com/profile/${userId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+            },
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
@@ -49,7 +62,7 @@ const Profile = () => {
     };
 
     fetchProfile();
-  }, [userId]);
+  }, []);
 
   const showMessage = (type, text) => {
     setMessage({ type, text });
@@ -58,16 +71,19 @@ const Profile = () => {
 
   const handleProfileUpdate = async () => {
     try {
-      const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          bio: user.bio,
-          tags: user.tags, // send as an array
-        }),
-      });
+      const response = await fetch(
+        `https://testrepo-hkzu.onrender.com/profile/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            bio: user.bio,
+            tags: user.tags, // send as an array
+          }),
+        }
+      );
 
       if (response.ok) {
         showMessage("success", "Profile updated successfully!");
