@@ -20,21 +20,23 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`);
+        const response = await fetch('https://testrepo-hkzu.onrender.com/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include the token
+          },
+        });
+
         if (response.ok) {
           const data = await response.json();
           console.log("Fetched profile data:", data);
           setUser({
             name: data.name || "Unknown User",
-            bio: data.bio || "No bio available", // Use data.bio instead of data.description
+            bio: data.bio || "No bio available",
             profilePic: data.profile_picture
               ? `https://testrepo-hkzu.onrender.com${data.profile_picture}`
               : "https://via.placeholder.com/100",
-            tags: data.tags
-              ? Array.isArray(data.tags)
-                ? data.tags
-                : data.tags.split(",")
-              : [],
+            tags: data.tags || [],
           });
         } else {
           console.error("Error fetching profile:", response.statusText);

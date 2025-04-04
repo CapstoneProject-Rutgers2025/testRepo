@@ -152,6 +152,28 @@ app.get('/profile/:userId', async (req, res) => {
     }
 });
 
+// Get user profile endpoint using JWT token
+app.get('/profile', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1]; // Extract the token from the Authorization header
+    if (!token) return res.status(401).send('Authorization token is missing');
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Decode the token
+        const userId = decoded.id; // Extract the userId from the token
+
+        const profile = await getUserProfile(userId);
+        if (!profile) return res.status(404).send('Profile not found');
+
+        // Fetch interests from user_interests table and attach them as tags
+        const interestsRows = await getUserInterests(userId);
+        profile.tags = interestsRows.map(row => row.interest);
+
+        res.status(200).json(profile);
+    } catch (err) {
+        res.status(500).send('Error fetching profile: ' + err.message);
+    }
+});
+
 // Add user interests endpoint (with extra logging)
 app.post('/interests', async (req, res) => {
     const { userId, interests } = req.body;
