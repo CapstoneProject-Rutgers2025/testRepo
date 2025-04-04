@@ -45,6 +45,7 @@ function AnimatedRoutes({ isSidebarOpen, toggleSidebar }) {
         {/* Dashboard and Sidebar Pages */}
         <Route path="/dashboard" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Dashboard /></Layout>} />
         <Route path="/profile" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Profile /></Layout>} />
+        <Route path="/profile/:userId" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Profile /></Layout>} />
         <Route path="/notifications" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Notifications /></Layout>} />
         <Route path="/chat" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Chat /></Layout>} />
         <Route path="/updates" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Updates /></Layout>} />

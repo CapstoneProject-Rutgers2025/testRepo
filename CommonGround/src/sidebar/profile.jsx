@@ -27,9 +27,6 @@ const Profile = () => {
           return;
         }
 
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken.id; // Extract userId from the token
-
         const response = await fetch(
           `https://testrepo-hkzu.onrender.com/profile/${userId}`,
           {
@@ -62,7 +59,7 @@ const Profile = () => {
     };
 
     fetchProfile();
-  }, []);
+  }, [userId]);
 
   const showMessage = (type, text) => {
     setMessage({ type, text });
