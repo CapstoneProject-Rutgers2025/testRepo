@@ -1,22 +1,44 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaHome, FaUser, FaBell, FaComments, FaSyncAlt, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
-import jwtDecode from "jwt-decode";
-import "../dashboard.css"; // Ensure correct path
+import { 
+  FaHome, 
+  FaUser, 
+  FaBell, 
+  FaComments, 
+  FaSyncAlt, 
+  FaQuestionCircle, 
+  FaSignOutAlt 
+} from "react-icons/fa";
+import jwt_decode from "jwt-decode";
+import "../dashboard.css";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navigate = useNavigate();
 
   const handleProfileNavigation = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.id; // Extract userId from the token
-      navigate(`/profile/${userId}`); // Navigate to the profile page with userId in the URL
-    } else {
-      navigate("/login"); // Redirect to login if no token is found
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found");
+        navigate("/profile"); // Allow access without forcing login redirect
+        return;
+      }
+
+      const decoded = jwt_decode(token);
+      const userId = decoded.id;
+
+      if (userId) {
+        navigate(`/profile/${userId}`);
+      } else {
+        console.warn("No userId in token, falling back to /profile");
+        navigate("/profile");
+      }
+    } catch (error) {
+      console.error("Token decode failed, navigating to fallback profile page");
+      navigate("/profile");
     }
+
     toggleSidebar();
   };
 
