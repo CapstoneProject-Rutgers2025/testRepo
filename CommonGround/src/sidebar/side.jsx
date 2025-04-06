@@ -10,7 +10,7 @@ import {
   FaQuestionCircle, 
   FaSignOutAlt 
 } from "react-icons/fa";
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import "../dashboard.css";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -21,13 +21,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       const token = localStorage.getItem("token");
       if (!token) {
         console.error("No token found");
-        navigate("/profile"); // Allow access without forcing login redirect
+        navigate("/profile");
         return;
       }
-
-      const decoded = jwt_decode(token);
+  
+      const decoded = jwtDecode(token); // ✅ FIXED HERE
       const userId = decoded.id;
-
+  
       if (userId) {
         navigate(`/profile/${userId}`);
       } else {
@@ -38,9 +38,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       console.error("Token decode failed, navigating to fallback profile page");
       navigate("/profile");
     }
-
+  
     toggleSidebar();
   };
+  
 
   return (
     <motion.div

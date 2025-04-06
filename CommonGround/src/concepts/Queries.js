@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { pool } from "../db/db.js"; // db.js is the file that connects to the database
 
+// Create users table
 async function createUsersTable() {    
     const createTableQuery = `
     CREATE TABLE IF NOT EXISTS users (
@@ -19,47 +20,7 @@ async function createUsersTable() {
     }
 }
 
-async function populateUserProfiles() {
-    const adjectives = [
-        "Genius", "Crazy", "Wacky", "Silly", "Brilliant", "Quirky", "Zany", "Nerdy", "Hyper", "Funky"
-    ];
-    const nouns = [
-        "Nerd", "Wizard", "Gamer", "Coder", "Artist", "Thinker", "Dreamer", "Creator", "Explorer", "Inventor"
-    ];
-
-    const insertDefaultProfilesQuery = `
-        INSERT INTO user_profiles (user_id, name, profile_picture, bio, tags)
-        SELECT 
-            users.id, 
-            (
-                SELECT 
-                    CONCAT(
-                        adjectives.adj, 
-                        nouns.noun, 
-                        floor(random() * 100 + 1)::TEXT
-                    )
-                FROM 
-                    (SELECT UNNEST(ARRAY[${adjectives.map(adj => `'${adj}'`).join(",")}]) AS adj) AS adjectives,
-                    (SELECT UNNEST(ARRAY[${nouns.map(noun => `'${noun}'`).join(",")}]) AS noun) AS nouns
-                ORDER BY random()
-                LIMIT 1
-            ) AS name,
-            NULL, 
-            NULL, 
-            ARRAY[]::TEXT[]
-        FROM users
-        LEFT JOIN user_profiles ON users.id = user_profiles.user_id
-        WHERE user_profiles.user_id IS NULL;
-    `;
-    try {
-        await pool.query(insertDefaultProfilesQuery);
-        console.log("Default profiles with wacky names added for users without profiles!");
-    } catch (err) {
-        console.error("Error populating user profiles:", err);
-        throw err;
-    }
-}
-
+// Create user profiles table
 async function createUserProfilesTable() {
     const createTableQuery = `
     CREATE TABLE IF NOT EXISTS user_profiles (
@@ -68,7 +29,6 @@ async function createUserProfilesTable() {
         name VARCHAR(100), 
         profile_picture TEXT,
         bio TEXT,
-        tags TEXT[], -- This column is no longer used for interests, as interests are stored in user_interests
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
@@ -81,6 +41,7 @@ async function createUserProfilesTable() {
     }
 }
 
+// Create user interests table
 async function createUserInterestsTable() {
     const createTableQuery = `
     CREATE TABLE IF NOT EXISTS user_interests (
@@ -98,27 +59,31 @@ async function createUserInterestsTable() {
     }
 }
 
+// Insert interests for a user
 async function insertUserInterests(userId, interests) {
     const client = await pool.connect();
     try {
-        await client.query('BEGIN');
-        for (const interest of interests) {
-            await client.query(
-                "INSERT INTO user_interests (user_id, interest) VALUES ($1, $2)",
-                [userId, interest]
-            );
+      await client.query('BEGIN');
+      for (const interest of interests) {
+        if (interest && interest.trim() !== "") {
+          await client.query(
+            "INSERT INTO user_interests (user_id, interest) VALUES ($1, $2)",
+            [userId, interest.trim()]
+          );
         }
-        await client.query('COMMIT');
-        console.log("User interests added successfully!");
+      }
+      await client.query('COMMIT');
+      console.log("User interests added successfully!");
     } catch (err) {
-        await client.query('ROLLBACK');
-        console.error('Error adding user interests!', err);
-        throw err;
+      await client.query('ROLLBACK');
+      console.error('Error adding user interests!', err);
+      throw err;
     } finally {
-        client.release();
+      client.release();
     }
 }
-
+  
+// Get interests for a user
 async function getUserInterests(userId) {
     try {
         const result = await pool.query(
@@ -132,9 +97,9 @@ async function getUserInterests(userId) {
     }
 }
 
+// Check for duplicate password
 async function isPasswordDuplicate(password) {
     const hashedPasswords = await pool.query("SELECT password FROM users");
-    
     for (let row of hashedPasswords.rows) {
         if (await bcrypt.compare(password, row.password)) {
             return true; // Password is a duplicate
@@ -143,6 +108,7 @@ async function isPasswordDuplicate(password) {
     return false;
 }
 
+// Insert a new user
 async function insertUser(username, email, password) {
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
@@ -156,12 +122,12 @@ async function insertUser(username, email, password) {
     }
 }
 
-async function insertUserProfile(userId, profilePicture, bio, tags) {
+// Insert a new user profile (now accepts name)
+async function insertUserProfile(userId, profilePicture, bio, name) {
     try {
-        // Always insert an empty array for tags
         await pool.query(
-            "INSERT INTO user_profiles (user_id, profile_picture, bio, tags) VALUES ($1, $2, $3, $4)",
-            [userId, profilePicture, bio, []]
+            "INSERT INTO user_profiles (user_id, profile_picture, bio, name) VALUES ($1, $2, $3, $4)",
+            [userId, profilePicture, bio, name]
         );
         console.log("User profile created successfully!");
     } catch (err) {
@@ -170,20 +136,21 @@ async function insertUserProfile(userId, profilePicture, bio, tags) {
     }
 }
 
-async function updateUserProfile(userId, profilePicture, bio) {
+// Update user profile (updates profile picture, bio, and name)
+async function updateUserProfile(userId, profilePicture, bio, name) {
     try {
-        // Update only profile_picture and bio; leave tags unchanged
-        await pool.query(
-            "UPDATE user_profiles SET profile_picture = $1, bio = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3",
-            [profilePicture, bio, userId]
-        );
-        console.log("User profile updated successfully!");
+      await pool.query(
+        "UPDATE user_profiles SET profile_picture = $1, bio = $2, name = $3, updated_at = CURRENT_TIMESTAMP WHERE user_id = $4",
+        [profilePicture, bio, name, userId]
+      );
+      console.log("User profile updated successfully!");
     } catch (err) {
-        console.error('Error updating user profile!', err);
-        throw err;
+      console.error('Error updating user profile!', err);
+      throw err;
     }
 }
-
+  
+// Get user by email
 async function getUserByEmail(email) {
     try {
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -194,24 +161,33 @@ async function getUserByEmail(email) {
     }
 }
 
+// Get user profile (joins users and user_profiles)
 async function getUserProfile(userId) {
+    const query = `
+      SELECT 
+        users.username, 
+        user_profiles.name,
+        user_profiles.profile_picture, 
+        user_profiles.bio,
+        user_profiles.user_id
+      FROM users
+      LEFT JOIN user_profiles ON users.id = user_profiles.user_id
+      WHERE users.id = $1
+    `;
     try {
-        const result = await pool.query(
-            "SELECT * FROM user_profiles WHERE user_id = $1",
-            [userId]
-        );
-        return result.rows[0];
+      const result = await pool.query(query, [userId]);
+      return result.rows[0];
     } catch (err) {
-        console.error('Error fetching user profile:', err);
-        throw err;
+      console.error('Error fetching user profile:', err);
+      throw err;
     }
 }
-
+  
+// Create a user (using insertUser)
 async function createUser(username, email, password) {
     if (await isPasswordDuplicate(password)) {
         throw new Error("Password is already in use. Please choose a different one.");
     }
-    
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
         await pool.query(
@@ -224,6 +200,7 @@ async function createUser(username, email, password) {
     }
 }
 
+// Create posts table
 async function createPostsTable() {
     const createTableQuery = `
     CREATE TABLE IF NOT EXISTS posts (
@@ -243,6 +220,7 @@ async function createPostsTable() {
     }
 }
 
+// Insert a post
 async function insertPost(title, content, image_url, user_id) {
     const insertQuery = `
         INSERT INTO posts (title, content, image_url, user_id)
@@ -257,6 +235,7 @@ async function insertPost(title, content, image_url, user_id) {
     }
 }
 
+// Get all posts
 async function getPosts() {
     const getPostsQuery = `
         SELECT posts.id, posts.title, posts.content, posts.image_url, posts.created_at, users.id as user_id, users.username AS user_name 
@@ -289,5 +268,4 @@ export {
     createPostsTable,
     insertPost,
     getPosts,
-    populateUserProfiles
 };

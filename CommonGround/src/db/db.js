@@ -1,39 +1,38 @@
-import pkg from 'pg'; // Import the entire 'pg' package
-import dotenv from 'dotenv'; // Import dotenv to load environment variables
+import pkg from 'pg';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config(); // Load environment variables from .env file
+// ⬇️ Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const { Pool } = pkg; // Destructure the Pool object from the imported package
+// ⬇️ Load .env from project root
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+console.log("Loaded DATABASE_URL:", process.env.DATABASE_URL);
 
-// Create a new pool instance, managing database connections
+const { Pool } = pkg;
+
+// ⬇️ Always use SSL for Render-hosted PostgreSQL
 const pool = new Pool({
-    user: 'admin', // Default PostgreSQL user
-    host: 'virginia-postgres.render.com', // Default PostgreSQL host
-    database: 'db_54al',
-    password: 'yPqASFsvtBNMKwSiUHGEniwP9eqB7vAf', // Default PostgreSQL password
-    port: 5432, // Default PostgreSQL port
-    ssl: {
-        rejectUnauthorized: false, // Allow self-signed certificates
-    },
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 export default pool;
-
 export { pool };
 
-async function query(text, params) {
-    const start = Date.now();
-    try {
-        const result = await pool.query(text, params);
-        // Execute query and log the time it took
-        const duration = Date.now() - start;
-
-        console.log('executed query', { text, duration, rows: result.rowCount });
-        return result;
-    } catch (err) {
-        console.log(err);
-        throw err;
-    }
+export async function query(text, params) {
+  const start = Date.now();
+  try {
+    const result = await pool.query(text, params);
+    const duration = Date.now() - start;
+    console.log('executed query', { text, duration, rows: result.rowCount });
+    return result;
+  } catch (err) {
+    console.error('Query error:', err);
+    throw err;
+  }
 }
-
-export { query };

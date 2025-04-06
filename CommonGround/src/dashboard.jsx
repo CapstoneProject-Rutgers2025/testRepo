@@ -70,13 +70,6 @@ const Dashboard = () => {
       {/* ✅ Main Content */}
       <div className={`dashboard-content ${sidebarOpen ? "shift" : ""}`}>
 
-        {/* ✅ User Profile */}
-        <motion.div className="profile-card">
-          <div className="profile-picture"></div>
-          <h2>{user.full_name}</h2>
-          <p>{user.email}</p>
-        </motion.div>
-
         {/* ✅ Posts Section */}
         <div className="post-container">
           <AnimatePresence>

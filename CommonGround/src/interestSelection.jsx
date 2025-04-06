@@ -18,18 +18,22 @@ const InterestSelection = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      const decodedToken = jwtDecode(token);
-      setUserId(decodedToken.id);
-      fetchExistingProfile(decodedToken.id);
+      const decoded = jwtDecode(token);
+      setUserId(decoded.id);
+      fetchProfilePicture(decoded.id);
     } else {
       alert('Please log in first.');
       navigate('/login');
     }
   }, [navigate]);
 
-  const fetchExistingProfile = async (id) => {
+  const fetchProfilePicture = async (id) => {
     try {
-      const res = await fetch(`https://testrepo-hkzu.onrender.com/profile/${id}`);
+      const res = await fetch(`https://testrepo-hkzu.onrender.com/profile/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
       if (!res.ok) return;
       const data = await res.json();
       if (data.profile_picture) {
@@ -56,14 +60,12 @@ const InterestSelection = () => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setProfileImage(URL.createObjectURL(file)); // Show preview
 
     try {
       const formData = new FormData();
-      // Update only the profile picture and bio (if any)
       formData.append("profile_picture", file);
-      formData.append("bio", ""); // optional for now
+      formData.append("bio", ""); // You can update this if you want to use bio here
 
       const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`, {
         method: 'PUT',
@@ -74,7 +76,6 @@ const InterestSelection = () => {
       });
 
       if (!response.ok) throw new Error("Failed to upload profile picture.");
-
       showMessage("success", "Profile picture uploaded successfully!");
     } catch (err) {
       console.error("Error:", err);
@@ -99,12 +100,8 @@ const InterestSelection = () => {
       });
 
       if (!response.ok) throw new Error("Failed to save interests.");
-
       showMessage("success", "Interests saved successfully!");
-      // Delay navigation to give time to read the success message
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 3000);
+      setTimeout(() => navigate('/dashboard'), 3000);
     } catch (err) {
       console.error("Error:", err);
       showMessage("error", "Error saving interests.");
