@@ -1,155 +1,129 @@
 .dashboard-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(to right, #73cbc8, #7ca8dc); /* Gradient Background */
-    font-family: Arial, sans-serif;
-    overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to right, #73cbc8, #7ca8dc);
+  font-family: Arial, sans-serif;
+  overflow: hidden;
 }
-  .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    width: 250px;
-    background: #72cac7;
-    color: white;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
-    display: flex;
-    flex-direction: column;
-    padding-top: 20px;
-  }
-  
-  .sidebar.open {
-    transform: translateX(0);
-  }
-  
-  .sidebar ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .sidebar li {
-    padding: 15px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .sidebar li:hover {
-    background: #444;
-  }
-  
-  .close-sidebar {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-    align-self: flex-end;
-    margin-right: 15px;
-  }
-  
-  .navbar {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    padding: 15px;
-    background: white;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    align-items: center;
-  }
-  
-  .nav-right {
-    display: flex;
-    gap: 15px;
-  }
-  
-  .profile-card {
-    width: 80%;
-    max-width: 400px;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    margin: 20px 0;
-  }
-  
-  .profile-picture {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: gray;
-    margin: 0 auto 10px;
-  }
-  
-  .post-container {
-    width: 90%;
-    max-width: 500px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    margin-top: 20px;
-  }
-  
-  /* Post Card */
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 250px;
+  background: #72cac7;
+  color: white;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  padding: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar li:hover {
+  background: #444;
+}
+
+.close-sidebar {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  align-self: flex-end;
+  margin-right: 15px;
+}
+
+.post-container {
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
 .post-card {
   background: white;
   border-radius: 12px;
   padding: 16px;
-  width: 340px; /* Slightly larger */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 360px;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  gap: 10px;
   transition: transform 0.3s ease;
+  overflow: hidden;
 }
 
 .post-card:hover {
   transform: scale(1.02);
 }
 
-/* Profile Picture */
-.profile-picture {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: #ccc;
-}
-
-/* Post Image */
 .post-image {
   width: 100%;
-  height: 200px; /* Bigger Image */
-  background-color: #e0e0e0;
-  border-radius: 8px;
-  object-fit: cover;
+  max-height: 400px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-/* Post Content */
-.post-description {
-  font-size: 16px;
-  text-align: center;
-  color: #333;
-  padding: 10px;
+.post-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  border-radius: 10px;
 }
-/* Post Actions (Align Left & Right) */
+
+.poster-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: #333;
+  text-align: left;
+  width: 100%;
+  padding: 0 5px;
+}
+
+.post-description {
+  font-size: 14px;
+  color: #555;
+  text-align: left;
+  padding: 0 5px 10px;
+  line-height: 1.4;
+}
+
+/* 🚦 Accept / Reject Buttons */
 .post-actions {
   display: flex;
-  justify-content: space-between; /* Push buttons to the edges */
+  justify-content: space-between;
   align-items: center;
-  width: 100%; /* Make sure buttons take full width */
-  padding: 0 20px; /* Add padding for spacing */
+  width: 100%;
+  padding: 0 20px;
   margin-top: 10px;
 }
-
 
 .accept-button,
 .reject-button {
@@ -185,33 +159,41 @@
   transform: scale(1.1);
 }
 
-  .bottom-bar {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%); /* ✅ Ensures true centering */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-  }
-  
-  .create-post-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 24px;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .create-post-btn:hover {
-    background: #0056b3;
-  }
-  
+/* ⬇️ Floating Create Button */
+.bottom-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.create-post-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.create-post-btn:hover {
+  background: #0056b3;
+}
+.post-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 10px 0 5px;
+  text-align: center;
+  color: #333;
+}
+

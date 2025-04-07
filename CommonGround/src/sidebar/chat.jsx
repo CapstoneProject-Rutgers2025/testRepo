@@ -1,62 +1,47 @@
-import React, { useState, useEffect } from "react";
-import io from "socket.io-client";
-import './chat.css'; // Make sure the path is correct
+import React, { useState } from 'react';
+import './chat.css'; 
 
-const Chat = () => {
+const ChatRoom = ({ topic = 'Resume Development' }) => {
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [socket, setSocket] = useState(null);
+  const [newMsg, setNewMsg] = useState('');
 
-  useEffect(() => {
-    const socketConnection = io("http://localhost:5173");
-
-    setSocket(socketConnection);
-
-    socketConnection.on('chat message', (msg) => {
-      setMessages((prevMessages) => [...prevMessages, { text: msg, isSent: false }]);
-    });
-
-    return () => {
-      socketConnection.disconnect();
-    };
-  }, []);
-
-  const handleSendMessage = () => {
-    if (newMessage && socket) {
-      socket.emit("chat message", newMessage);
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { text: newMessage, isSent: true }
-      ]);
-      setNewMessage("");
-    }
+  const sendMessage = () => {
+    if (!newMsg.trim()) return;
+    setMessages([...messages, { text: newMsg, isSent: true }]);
+    setNewMsg('');
   };
 
   return (
-    <div className="content-container">
-      <h2>Chat</h2>
-      <p>Start a conversation...</p>
+    <div className="chat-room">
+      <div className="chat-header">
+        <h3>{topic}</h3>
+      </div>
 
-      <div className="messages">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`message ${msg.isSent ? 'sent' : 'received'}`}
-          >
+      <div className="chat-messages">
+        {messages.length === 0 && (
+          <p style={{ textAlign: 'center', color: '#aaa' }}>
+            No messages yet.
+          </p>
+        )}
+        {messages.map((msg, i) => (
+          <div key={i} className={`chat-message ${msg.isSent ? 'me' : ''}`}>
             {msg.text}
           </div>
         ))}
       </div>
 
-      <input
-        type="text"
-        value={newMessage}
-        onChange={(e) => setNewMessage(e.target.value)}
-        placeholder="Type your message..."
-      />
-      <button onClick={handleSendMessage}>Send</button>
+      <div className="chat-input">
+        <input
+          type="text"
+          value={newMsg}
+          onChange={(e) => setNewMsg(e.target.value)}
+          placeholder="Type your message..."
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
     </div>
   );
 };
 
-export default Chat;
+export default ChatRoom;

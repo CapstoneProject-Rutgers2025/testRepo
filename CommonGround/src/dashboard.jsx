@@ -1,28 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { motion, AnimatePresence} from "framer-motion";
-import { FaPlus, FaTimes, FaCheck } from "react-icons/fa";
-import Sidebar from "./sidebar/side"; 
+import { motion, AnimatePresence } from "framer-motion";
+import { FaPlus } from "react-icons/fa";
+import Sidebar from "./sidebar/side";
 import "./dashboard.css";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [posts, setPosts] = useState([
-    { id: 1, content: "🚀 Description!", liked: null },
-    { id: 2, content: "🔥 Description!", liked: null },
-  ]);
-
-  
-
+  const [posts, setPosts] = useState([]);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
   };
 
- 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -41,7 +34,28 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch("https://testrepo-hkzu.onrender.com/posts");
+        const data = await response.json();
+        const formatted = data.map((post) => ({
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          image_url: post.image_url,
+          user_name: post.user_name,
+          liked: null,
+        }));
+        setPosts(formatted);
+      } catch (err) {
+        console.error("Error fetching posts:", err);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
   const handleSwipe = (id, liked) => {
     setPosts((prev) => {
       const swipedPost = prev.find((post) => post.id === id);
@@ -53,8 +67,8 @@ const Dashboard = () => {
 
       setTimeout(() => {
         setPosts((currentPosts) => {
-          const remainingPosts = currentPosts.filter((post) => post.id !== id);
-          return [...remainingPosts, swipedPost]; 
+          const remaining = currentPosts.filter((post) => post.id !== id);
+          return [...remaining, swipedPost];
         });
       }, 300);
 
@@ -64,70 +78,61 @@ const Dashboard = () => {
 
   return user ? (
     <div className="dashboard-container">
-      {/* ✅ Sidebar */}
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-
-      {/* ✅ Main Content */}
       <div className={`dashboard-content ${sidebarOpen ? "shift" : ""}`}>
-
-        {/* ✅ Posts Section */}
         <div className="post-container">
           <AnimatePresence>
             {posts.length > 0 && (
-             <motion.div
-             key={posts[0].id}
-             className="post-card"
-             drag="x"
-             dragConstraints={{ left: 0, right: 0 }}
-             dragElastic={1.2} //  Looseness 
-             whileDrag={{ rotate: 5, scale: 1.03 }} 
-             initial={{ opacity: 1 }}
-             exit={{
-               opacity: 0,
-               x: posts[0].liked === true ? 500 : posts[0].liked === false ? -500 : 0,
-               rotate: 0,
-               transition: { duration: 0.3 },
-             }}
-             onDragEnd={(e, info) => {
-               const offset = info.offset.x;
-               const velocity = info.velocity.x;
-           
-               
-               const swipeThreshold = 250;//how far to go 
-           
-               if (offset > swipeThreshold) {
-                 handleSwipe(posts[0].id, true); 
-               } else if (offset < -swipeThreshold) {
-                 handleSwipe(posts[0].id, false); 
-               }
-             }}
-           >
-           
-            
-              {/* Profile Picture */}
-              <div className="profile-picture"></div>
-            
-              {/* Post Image */}
-              <div className="post-image"></div>
-            
-              {/* Post Description */}
-              <p className="post-description">{posts[0].content}</p>
-            
-              
-              
-            </motion.div>
-            
+              <motion.div
+                key={posts[0].id}
+                className="post-card"
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={1.2}
+                whileDrag={{ rotate: 5, scale: 1.03 }}
+                initial={{ opacity: 1 }}
+                exit={{
+                  opacity: 0,
+                  x: posts[0].liked === true ? 500 : posts[0].liked === false ? -500 : 0,
+                  rotate: 0,
+                  transition: { duration: 0.3 },
+                }}
+                onDragEnd={(e, info) => {
+                  const offset = info.offset.x;
+                  const swipeThreshold = 250;
+                  if (offset > swipeThreshold) {
+                    handleSwipe(posts[0].id, true);
+                  } else if (offset < -swipeThreshold) {
+                    handleSwipe(posts[0].id, false);
+                  }
+                }}
+              >
+                {/* 📝 Title */}
+                <h3 className="post-title">{posts[0].title}</h3>
+
+                {/* 🖼️ Image */}
+                {posts[0].image_url && (
+                  <div className="post-image">
+                    <img src={posts[0].image_url} alt="Post" />
+                  </div>
+                )}
+
+                {/* 👤 Username */}
+                <div className="poster-name">@{posts[0].user_name}</div>
+
+                {/* ✍️ Description */}
+                <p className="post-description">{posts[0].content}</p>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* ✅ Bottom Bar (Centered) */}
         <div className="bottom-bar">
           <motion.button
             className="create-post-btn"
             whileHover={{ scale: 1.2, rotate: 10 }}
             transition={{ duration: 0.2 }}
-            onClick={() => navigate("/create-post")} 
+            onClick={() => navigate("/create-post")}
           >
             <FaPlus />
           </motion.button>

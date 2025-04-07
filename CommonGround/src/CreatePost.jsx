@@ -1,123 +1,138 @@
-import React, { useState, useEffect } from "react";
-import { FaEdit } from "react-icons/fa";
-import "./CreatePost.css";
-import {jwtDecode} from "jwt-decode";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import { FaPlus } from 'react-icons/fa';
+import allInterests from "../interests.js";
+import './CreatePost.css';
 
 const CreatePost = () => {
-  const [postText, setPostText] = useState("");
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
-  const [tags, setTags] = useState([]);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const storedInterests = JSON.parse(localStorage.getItem("selectedInterests")) || [];
-    setTags(storedInterests);
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const decoded = jwtDecode(token);
+    const userId = decoded.id;
+
+    fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`)
+      .then((res) => res.json())
+      .then((data) => setProfile(data))
+      .catch((err) => console.error('Failed to load profile info', err));
   }, []);
 
-  const handleTagClick = (tag) => {
-    setSelectedTags((prevTags) =>
-      prevTags.includes(tag) ? prevTags.filter((t) => t !== tag) : [...prevTags, tag]
-    );
-  };
-
-  const handleImageUpload = (e) => {
+  const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(URL.createObjectURL(file));
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
-  const handleSubmit = async () => {
-    const token = localStorage.getItem("token");
-  
-    if (!token) {
-      console.error("User not authenticated");
-      alert("Please log in first.");
-      return;
+  const toggleTag = (tag) => {
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
+    } else {
+      setSelectedTags([...selectedTags, tag]);
     }
-  
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token) return setMessage('You must be logged in to post.');
+
+    const decoded = jwtDecode(token);
+    const user_id = decoded.id;
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', content);
+    formData.append('user_id', user_id);
+    if (image) formData.append('image', image);
+
     try {
-      // Decode the JWT token to get the user ID
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.id; 
-      console.log("Decoded Token:", decodedToken);
-      console.log("User ID:", userId);
-  
-  
-      // Prepare the post data with the dynamically retrieved user_id
-      const postData = {
-        title: "Untitled Post",
-        content: postText,
-        image_url: image, 
-        user_id: userId, 
-        tags: selectedTags,
-      };
-  
-      // Send the POST request to create the post
-      const response = await fetch("https://testrepo-hkzu.onrender.com/posts", {
-        method: "POST",
+      const response = await fetch('https://testrepo-hkzu.onrender.com/posts', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`, // Include the token in the Authorization header
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(postData),
+        body: formData,
       });
-  
-      if (!response.ok) {
-        throw new Error("Failed to create post: ${errortext}");
-      }
-  
-      const data = await response.json();
-      console.log("Post Created:", data);
-      alert("Post successfully created!");
-  
-      // Reset form after submission
-      setPostText("");
-      setSelectedTags([]);
-      setImage(null);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error creating post:", error.message); 
-        alert(`Error creating post. Please try again. ${error.message}`);
+
+      const result = await response.json();
+      if (response.ok) {
+        setMessage('Post created successfully!');
+        setTitle('');
+        setContent('');
+        setImage(null);
+        setSelectedTags([]);
+        setImagePreview(null);
+        navigate('/dashboard');
       } else {
-        console.error("Unexpected error:", error);
-        alert("Unexpected error occurred. Please try again.");
+        setMessage(result.message || 'Error creating post');
       }
+    } catch (error) {
+      console.error('Error submitting post:', error);
+      setMessage('Something went wrong.');
     }
   };
 
   return (
     <div className="create-post-container">
-      <h2 className="title">Create Post</h2>
+      <h2 className="title">Create a Post</h2>
+
+      <input
+        type="text"
+        className="title-input"
+        placeholder="Post Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+
       <div className="post-content">
         <label className="image-upload">
-          {image ? (
-            <img src={image} alt="Uploaded" className="preview-image" />
+          {imagePreview ? (
+            <img src={imagePreview} alt="Preview" className="preview-image" />
           ) : (
-            <div className="plus-icon">+</div>
+            <FaPlus className="plus-icon" />
           )}
-          <input type="file" accept="image/*" onChange={handleImageUpload} hidden />
+          <input type="file" hidden onChange={handleImageChange} />
         </label>
+
         <textarea
           className="description-box"
-          value={postText}
-          onChange={(e) => setPostText(e.target.value)}
-          placeholder="Description..."
-        ></textarea>
+          placeholder="Description"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+        />
       </div>
-      <p className="tag-title">Choose tag most relevant to your post</p>
+
+      <div className="tag-title">Add Tags:</div>
       <div className="tag-selection">
-        {tags.map((tag) => (
-          <button
-            key={tag}
-            className={selectedTags.includes(tag) ? "tag selected" : "tag"}
-            onClick={() => handleTagClick(tag)}
+        {allInterests.map((tag, i) => (
+          <div
+            key={i}
+            className={`tag ${selectedTags.includes(tag) ? 'selected' : ''}`}
+            onClick={() => toggleTag(tag)}
           >
-            {selectedTags.includes(tag) ? "✔ " : "+ "}{tag}
-          </button>
+            {tag}
+          </div>
         ))}
       </div>
-      <button className="create-button" onClick={handleSubmit}>Create</button>
+
+      <button className="create-button" onClick={handleSubmit}>
+        Post
+      </button>
+
+      {message && <p>{message}</p>}
     </div>
   );
 };

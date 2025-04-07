@@ -9,15 +9,14 @@ import HomeScreen from "./homescreen";
 import InterestSelection from "./interestSelection"; 
 import CreatePost from "./CreatePost";
 
-
 import Profile from "./sidebar/profile";
 import Notifications from "./sidebar/notifications";
 import Chat from "./sidebar/chat";
 import Updates from "./sidebar/updates";
 import Help from "./sidebar/help";
 import Sidebar from "./sidebar/side";
+import ChatDashboard from './sidebar/chatdashboard'; 
 import Navbar from "./navbar";
-
 
 function Layout({ children, isSidebarOpen, toggleSidebar }) {
   return (
@@ -43,14 +42,70 @@ function AnimatedRoutes({ isSidebarOpen, toggleSidebar }) {
         <Route path="/interests" element={<InterestSelection onSubmit={(data) => console.log(data)} />} />
 
         {/* Dashboard and Sidebar Pages */}
-        <Route path="/dashboard" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Dashboard /></Layout>} />
-        <Route path="/profile" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Profile /></Layout>} />
-        <Route path="/profile/:userId" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Profile /></Layout>} />
-        <Route path="/notifications" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Notifications /></Layout>} />
-        <Route path="/chat" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Chat /></Layout>} />
-        <Route path="/updates" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Updates /></Layout>} />
-        <Route path="/help" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><Help /></Layout>} />
-        <Route path="/create-post" element={<Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}><CreatePost /></Layout>} />
+        <Route
+          path="/dashboard"
+          element={
+            <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+              <Dashboard />
+            </Layout>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+              <Profile />
+            </Layout>
+          }
+        />
+        <Route
+          path="/profile/:userId"
+          element={
+            <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+              <Profile />
+            </Layout>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+              <Notifications />
+            </Layout>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+              <ChatDashboard isSidebarOpen={isSidebarOpen} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/updates"
+          element={
+            <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+              <Updates />
+            </Layout>
+          }
+        />
+        <Route
+          path="/help"
+          element={
+            <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+              <Help />
+            </Layout>
+          }
+        />
+        <Route
+          path="/create-post"
+          element={
+            <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+              <CreatePost />
+            </Layout>
+          }
+        />
       </Routes>
     </AnimatePresence>
   );
