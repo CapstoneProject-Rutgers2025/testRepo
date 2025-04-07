@@ -233,9 +233,9 @@ app.get('/interests/:userId', async (req, res) => {
 });
 
 app.post('/posts', async (req, res) => {
-  const { title, content, image_url, user_id } = req.body;
+  const { title, content, image_url, user_id, tags } = req.body;
   try {
-    const postId = await insertPost(title, content, image_url, user_id);
+    const postId = await insertPost(title, content, image_url, user_id, tags);
     res.status(201).json({ message: 'Post created successfully', postId });
   } catch (err) {
     res.status(500).json({ message: 'Error creating post', error: err.message });

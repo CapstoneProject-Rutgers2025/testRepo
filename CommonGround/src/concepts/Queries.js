@@ -209,6 +209,7 @@ async function createPostsTable() {
         title VARCHAR(255) NOT NULL,
         content TEXT NOT NULL,
         image_url TEXT,
+        tags TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
     `;
@@ -221,13 +222,13 @@ async function createPostsTable() {
 }
 
 // Insert a post
-async function insertPost(title, content, image_url, user_id) {
+async function insertPost(title, content, image_url, user_id, tags) {
     const insertQuery = `
-        INSERT INTO posts (title, content, image_url, user_id)
-        VALUES ($1, $2, $3, $4) RETURNING id;
+        INSERT INTO posts (title, content, image_url, user_id, tags)
+        VALUES ($1, $2, $3, $4, $5) RETURNING id;
     `;
     try {
-        const result = await pool.query(insertQuery, [title, content, image_url, user_id]);
+        const result = await pool.query(insertQuery, [title, content, image_url, user_id,tags]);
         return result.rows[0].id;
     } catch (err) {
         console.error('Error inserting post', err);
@@ -238,7 +239,7 @@ async function insertPost(title, content, image_url, user_id) {
 // Get all posts
 async function getPosts() {
     const getPostsQuery = `
-        SELECT posts.id, posts.title, posts.content, posts.image_url, posts.created_at, users.id as user_id, users.username AS user_name 
+        SELECT posts.id, posts.title, posts.content, posts.image_url, posts.tags, posts.created_at, users.id as user_id, users.username AS user_name 
         FROM posts
         JOIN users ON posts.user_id = users.id
         ORDER BY posts.created_at DESC;

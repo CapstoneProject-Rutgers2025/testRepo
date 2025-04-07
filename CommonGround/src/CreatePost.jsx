@@ -56,6 +56,7 @@ const CreatePost = () => {
     formData.append('title', title);
     formData.append('content', content);
     formData.append('user_id', user_id);
+    formData.append('tags', selectedInterests.join(', '));
     if (image) formData.append('image', image);
 
     try {
