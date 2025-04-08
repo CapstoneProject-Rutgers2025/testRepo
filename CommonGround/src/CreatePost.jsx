@@ -79,7 +79,7 @@ const CreatePost = () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body:(formData),
+        body:formData,
       });
 
       const result = await response.json();
