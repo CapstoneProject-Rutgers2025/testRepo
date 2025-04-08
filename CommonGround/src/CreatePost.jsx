@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { FaPlus } from 'react-icons/fa';
@@ -10,7 +10,6 @@ const CreatePost = () => {
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [selectedTags, setSelectedTags] = useState([]);
   const [profile, setProfile] = useState(null);
   const [message, setMessage] = useState('');
   const [selectedInterests, setSelectedInterests] = useState([]);
@@ -27,7 +26,21 @@ const CreatePost = () => {
       .then((res) => res.json())
       .then((data) => setProfile(data))
       .catch((err) => console.error('Failed to load profile info', err));
-  }, []);
+
+      fetch(`https://testrepo-hkzu.onrender.com/interests/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error('Failed to fetch interests');
+          return res.json();
+        })
+        .then((data) => {
+          setSelectedInterests(data.interests || []);
+        })
+        .catch((err) => console.error('Failed to load interests:', err));
+    }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -37,11 +50,11 @@ const CreatePost = () => {
     }
   };
 
-  const toggleTag = (tag) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
+  const toggleInterest = (interest) => {
+    if (selectedInterests.includes(interest)) {
+      setSelectedInterests(selectedInterests.filter((i) => i !== interest));
     } else {
-      setSelectedTags([...selectedTags, tag]);
+      setSelectedInterests([...selectedInterests, interest]);
     }
   };
 
@@ -75,7 +88,7 @@ const CreatePost = () => {
         setTitle('');
         setContent('');
         setImage(null);
-        setSelectedTags([]);
+        setSelectedInterests([]);
         setImagePreview(null);
         navigate('/dashboard');
       } else {
@@ -119,13 +132,13 @@ const CreatePost = () => {
 
       <div className="tag-title">Add Tags:</div>
       <div className="tag-selection">
-        {allInterests.map((tag, i) => (
+        {allInterests.map((interest, i) => (
           <div
             key={i}
-            className={`tag ${selectedTags.includes(tag) ? 'selected' : ''}`}
-            onClick={() => toggleTag(tag)}
+            className={`tag ${selectedInterests.includes(interest) ? 'selected' : ''}`}
+            onClick={() => toggleInterest(interest)}
           >
-            {tag}
+            {interest}
           </div>
         ))}
       </div>
