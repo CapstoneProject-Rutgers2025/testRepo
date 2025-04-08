@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { FaPlus } from 'react-icons/fa';
@@ -13,6 +13,7 @@ const CreatePost = () => {
   const [selectedTags, setSelectedTags] = useState([]);
   const [profile, setProfile] = useState(null);
   const [message, setMessage] = useState('');
+  const [selectedInterests, setSelectedInterests] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -65,7 +66,7 @@ const CreatePost = () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: formData,
+        body:(formData),
       });
 
       const result = await response.json();
