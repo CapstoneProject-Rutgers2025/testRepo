@@ -35,7 +35,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: ['https://commonnground.netlify.app'],
+  origin: ['https://commonground.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 }));
