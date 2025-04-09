@@ -1,3 +1,4 @@
+//dashboard
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -45,7 +46,6 @@ const Dashboard = () => {
           content: post.content,
           image_url: post.image_url,
           user_name: post.user_name,
-          tags: post.tags ? JSON.parse(post.tags) : [],
           liked: null,
         }));
         setPosts(formatted);
@@ -123,15 +123,6 @@ const Dashboard = () => {
 
                 {/* ✍️ Description */}
                 <p className="post-description">{posts[0].content}</p>
-
-                {/* 🔖 Tags */}
-                {posts[0].tags?.length > 0 && (
-                  <div className="post-tags">
-                    {posts[0].tags.map((tag, i) => (
-                      <span key={i} className="tag-badge">{tag}</span>
-                    ))}
-                  </div>
-                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -155,3 +146,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
