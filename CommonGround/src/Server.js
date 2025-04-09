@@ -34,9 +34,7 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-const __imgname = path.resolve(); 
-
-
+ 
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -245,10 +243,6 @@ app.get('/interests/:userId', async (req, res) => {
 });
 
  app.post('/posts', async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://commonnground.netlify.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   const { title, content, image_url, user_id, tags } = req.body;
 
