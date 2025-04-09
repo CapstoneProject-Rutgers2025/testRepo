@@ -268,6 +268,71 @@ async function getPosts() {
         throw err;
     }
 }
+async function createChat(type) {
+    const createChatQuery = `
+      INSERT INTO chats (type)
+      VALUES ($1) 
+      RETURNING id
+    `;
+    try {
+      const result = await pool.query(createChatQuery, [type]);
+      return result.rows[0].id;  
+    } catch (error) {
+      console.error('Error creating chat:', error);
+      throw error;
+    }
+  }
+
+// Add user
+async function addUserToChat(chat_id, user_id) {
+    const addUserQuery = `
+      INSERT INTO chat_users (chat_id, user_id)
+      VALUES ($1, $2)
+    `;
+    try {
+
+      await pool.query(addUserQuery, [chat_id, user_id]);
+      console.log('User added to chat!');
+    } catch (error) {
+      console.error('Error adding user to chat:', error);
+      throw error;
+    }
+  }
+
+  // Get messages from chat
+async function getMessagesFromChat(chat_id) {
+    const getMessagesQuery = `
+      SELECT messages.id, messages.content, messages.created_at, users.username AS sender
+      FROM messages
+      JOIN users ON messages.sender_id = users.id
+      WHERE messages.chat_id = $1
+      ORDER BY messages.created_at ASC
+    `;
+    try {
+      const result = await pool.query(getMessagesQuery, [chat_id]);
+      return result.rows;  
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      throw error;
+    }
+  }
+
+
+async function insertMessage(chat_id, user_id, content) {
+    const insertMessageQuery = `
+        INSERT INTO messages (chat_id, sender_id, content)
+        VALUES ($1, $2, $3)
+        RETURNING id;
+    `;
+    try {
+        const result = await pool.query(insertMessageQuery, [chat_id, user_id, content]);
+        return result.rows[0].id;  
+    } catch (err) {
+        console.error('Error inserting message:', err);
+        throw err;
+    }
+} 
+
 
 export {
     createUsersTable,
@@ -285,4 +350,8 @@ export {
     createPostsTable,
     insertPost,
     getPosts,
+    createChat,
+    getMessagesFromChat,
+    addUserToChat,
+    insertMessage
 };

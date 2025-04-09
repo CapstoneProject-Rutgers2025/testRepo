@@ -25,6 +25,11 @@ import {
   createPostsTable,
   insertPost,
   getPosts,
+  createChat,
+  addUserToChat,
+  getMessagesFromChat,
+  insertMessage
+
 } from './concepts/Queries.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -280,6 +285,54 @@ app.get('/posts', async (req, res) => {
     res.status(200).json(posts);
   } catch (err) {
     res.status(500).json({ message: 'Error retrieving posts', error: err.message });
+  }
+});
+// Test route for creating a chat
+app.post('/chats', async (req, res) => {
+  const { type } = req.body;  
+  try {
+    const chat_id = await createChat(type);
+    res.status(201).json({ chat_id });
+  } catch (error) {
+    console.error('Error creating chat:', error);
+    res.status(500).json({ error: 'Failed to create chat' });
+  }
+});
+
+// Test route for inserting a message
+app.post('/message', async (req, res) => {
+  const { chat_id, user_id, content } = req.body;
+  try {
+    const message_id = await insertMessage(chat_id, user_id, content);
+    res.status(201).json({ message_id });
+  } catch (error) {
+    console.error('Error inserting message:', error);
+    res.status(500).json({ error: 'Failed to insert message' });
+  }
+});
+
+// Test route for getting messages from a chat
+app.get('/messages/:chat_id', async (req, res) => {
+  const { chat_id } = req.params;
+  try {
+    const messages = await getMessagesFromChat(chat_id);
+    res.json(messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+app.post('/chats/:chat_id/users', async (req, res) => {
+  const { chat_id } = req.params; 
+  const { user_id } = req.body;  
+
+  try {
+    await addUserToChat(chat_id, user_id);  
+    res.status(200).json({ message: 'User added to chat successfully' });
+  } catch (error) {
+    console.error('Error adding user to chat:', error);
+    res.status(500).json({ error: 'Failed to add user to chat' });
   }
 });
 
