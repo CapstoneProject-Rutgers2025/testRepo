@@ -34,6 +34,10 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
+const __imgname = path.resolve(); 
+
+// files from uploads directory will be served as static files
+app.use('/uploads', express.static(path.join(__imgname, 'uploads')));
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -246,7 +250,7 @@ app.post('/posts', upload.single('image'), async (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   const { title, content, user_id, tags } = req.body; 
-  const image_url = req.file ? req.file.path : null; 
+  const image_url = req.file ? `/uploads/${req.file.filename}` : null; 
 
   try {
     const postId = await insertPost(title, content, image_url, user_id, tags);
