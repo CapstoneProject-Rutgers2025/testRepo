@@ -34,24 +34,35 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors({
-  origin: ['http:localhost:5173','https://commonnground.netlify.app'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true,
-}));
+// ✅ Manual CORS fix for Netlify + Render
+app.use((req, res, next) => {
+  const allowedOrigins = ['https://commonnground.netlify.app', 'http://localhost:5173'];
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204); // Handle preflight
+  }
+
+  next();
+});
+
 app.use(bodyParser.json());
 
-// ✅ Use memoryStorage for Cloudinary upload
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Auto-create tables
 createUsersTable();
 createUserProfilesTable();
 createUserInterestsTable();
 createPostsTable();
-
-// ===== Routes ===== //
 
 app.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
@@ -107,11 +118,9 @@ app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) =
 
     const bio = req.body.bio || existing.bio || '';
     const name = req.body.name || existing.name || null;
-
     let profilePicture = existing.profile_picture;
 
     if (req.file) {
-      console.log("📷 Uploading to Cloudinary...");
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder: 'profile_pictures' },
         (err, result) => {
@@ -130,7 +139,6 @@ app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) =
 
     async function finalizeUpdate() {
       await updateUserProfile(userId, profilePicture, bio, name);
-      console.log("✅ Updated profile with bio, name, and picture.");
 
       if (req.body.interests) {
         try {
@@ -139,7 +147,7 @@ app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) =
             validInterests = parsed.filter(tag => typeof tag === 'string' && tag.trim() !== '');
           }
         } catch (err) {
-          console.warn("⚠️ Couldn't parse interests:", err.message);
+          console.warn("Couldn't parse interests:", err.message);
         }
 
         await pool.query(`DELETE FROM user_interests WHERE user_id = $1`, [userId]);
@@ -149,17 +157,12 @@ app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) =
             `INSERT INTO user_interests (user_id, interest) VALUES ($1, $2)`,
             [userId, tag.trim()]
           );
-          console.log(`✅ Inserted interest: "${tag.trim()}"`);
         }
       }
 
-      res.status(200).json({
-        message: 'Profile updated successfully!',
-        profilePicture,
-      });
+      res.status(200).json({ message: 'Profile updated successfully!', profilePicture });
     }
   } catch (err) {
-    console.error("❌ Error updating profile:", err.stack);
     res.status(500).json({ error: err.message });
   }
 });
@@ -182,7 +185,6 @@ app.get('/profile/:userId', async (req, res) => {
       tags,
     });
   } catch (err) {
-    console.error('Error fetching profile:', err);
     res.status(500).send('Error fetching profile: ' + err.message);
   }
 });
@@ -232,12 +234,29 @@ app.get('/interests/:userId', async (req, res) => {
   }
 });
 
-app.post('/posts', async (req, res) => {
-  const { title, content, image_url, user_id, tags } = req.body;
+app.post('/posts', upload.single('image'), async (req, res) => {
+  const { title, content, user_id, tags } = req.body;
+  let image_url = '';
+
   try {
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'post_images' },
+          (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
+          }
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+      });
+      image_url = result.secure_url;
+    }
+
     const postId = await insertPost(title, content, image_url, user_id, tags);
     res.status(201).json({ message: 'Post created successfully', postId });
   } catch (err) {
+    console.error('❌ Error creating post:', err.message);
     res.status(500).json({ message: 'Error creating post', error: err.message });
   }
 });
@@ -252,6 +271,5 @@ app.get('/posts', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`🚀 Server is running on port ${port}`);
 });
-
