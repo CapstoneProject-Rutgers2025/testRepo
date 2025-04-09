@@ -240,11 +240,17 @@ app.get('/interests/:userId', async (req, res) => {
 });
 
 app.post('/posts', async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://commonnground.netlify.app');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
   const { title, content, image_url, user_id, tags } = req.body;
   try {
     const postId = await insertPost(title, content, image_url, user_id, tags);
     res.status(201).json({ message: 'Post created successfully', postId });
   } catch (err) {
+    console.error('Error creating post:', err);
     res.status(500).json({ message: 'Error creating post', error: err.message });
   }
 });
