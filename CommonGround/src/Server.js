@@ -51,17 +51,6 @@ app.use(bodyParser.json());
 // Handle preflight requests
 app.options('*', cors());
 
-const imgstorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__imgname, 'uploads')); // Save files to the "uploads" directory
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + '-' + file.originalname); // Generate a unique filename
-  },
-});
-
-const imgupload = multer({ imgstorage });
 
 // ✅ Use memoryStorage for Cloudinary upload
 const storage = multer.memoryStorage();
@@ -73,8 +62,7 @@ createUserProfilesTable();
 createUserInterestsTable();
 createPostsTable();
 
-// files from uploads directory will be served as static files
-app.use('/uploads', express.static(path.join(__imgname, 'uploads')));
+
 // ===== Routes ===== //
 
 app.post('/signup', async (req, res) => {
@@ -256,14 +244,13 @@ app.get('/interests/:userId', async (req, res) => {
   }
 });
 
-app.post('/posts', imgupload.single('image'), async (req, res) => {
+ app.post('/posts', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://commonnground.netlify.app');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-  const { title, content, user_id, tags } = req.body; 
-  const image_url = req.file ? `/uploads/${req.file.filename}` : null; 
+  const { title, content, image_url, user_id, tags } = req.body;
 
   try {
     const postId = await insertPost(title, content, image_url, user_id, tags);

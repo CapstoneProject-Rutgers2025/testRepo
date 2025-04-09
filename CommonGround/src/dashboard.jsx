@@ -43,9 +43,7 @@ const Dashboard = () => {
           id: post.id,
           title: post.title,
           content: post.content,
-          image_url: post.image_url
-            ? `https://testrepo-hkzu.onrender.com${post.image_url}`
-            : null,
+          image_url: post.image_url,
           user_name: post.user_name,
           liked: null,
         }));
@@ -112,10 +110,10 @@ const Dashboard = () => {
                 {/* 📝 Title */}
                 <h3 className="post-title">{posts[0].title}</h3>
 
-                {/* 🖼️ Image */}
+               {/* 🖼️ Image */}
                 {posts[0].image_url && (
                   <div className="post-image">
-                    <img src={posts[0].image_url ||"https://via.placeholder.com/150" } alt="Post" />
+                    <img src={posts[0].image_url} alt="Post" />
                   </div>
                 )}
 
