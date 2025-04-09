@@ -34,14 +34,29 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors({
-  origin: ['https://commonnground.netlify.app'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true,
-}));
+// ✅ Manual CORS fix for Netlify + Render
+app.use((req, res, next) => {
+  const allowedOrigins = ['https://commonnground.netlify.app', 'http://localhost:5173'];
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204); // Handle preflight
+  }
+
+  next();
+});
+
 app.use(bodyParser.json());
 
-// ✅ Use memoryStorage for Cloudinary upload
+// ✅ Multer for memory upload (Cloudinary)
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
@@ -51,7 +66,7 @@ createUserProfilesTable();
 createUserInterestsTable();
 createPostsTable();
 
-// ===== Routes ===== //
+// ==== AUTH ROUTES ====
 
 app.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
@@ -87,6 +102,8 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// ==== PROFILE ROUTES ====
+
 app.post('/profile', async (req, res) => {
   const { userId, profilePicture, bio } = req.body;
   try {
@@ -107,11 +124,9 @@ app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) =
 
     const bio = req.body.bio || existing.bio || '';
     const name = req.body.name || existing.name || null;
-
     let profilePicture = existing.profile_picture;
 
     if (req.file) {
-      console.log("📷 Uploading to Cloudinary...");
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder: 'profile_pictures' },
         (err, result) => {
@@ -130,7 +145,6 @@ app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) =
 
     async function finalizeUpdate() {
       await updateUserProfile(userId, profilePicture, bio, name);
-      console.log("✅ Updated profile with bio, name, and picture.");
 
       if (req.body.interests) {
         try {
@@ -139,7 +153,7 @@ app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) =
             validInterests = parsed.filter(tag => typeof tag === 'string' && tag.trim() !== '');
           }
         } catch (err) {
-          console.warn("⚠️ Couldn't parse interests:", err.message);
+          console.warn("Couldn't parse interests:", err.message);
         }
 
         await pool.query(`DELETE FROM user_interests WHERE user_id = $1`, [userId]);
@@ -149,17 +163,12 @@ app.put('/profile/:userId', upload.single('profile_picture'), async (req, res) =
             `INSERT INTO user_interests (user_id, interest) VALUES ($1, $2)`,
             [userId, tag.trim()]
           );
-          console.log(`✅ Inserted interest: "${tag.trim()}"`);
         }
       }
 
-      res.status(200).json({
-        message: 'Profile updated successfully!',
-        profilePicture,
-      });
+      res.status(200).json({ message: 'Profile updated successfully!', profilePicture });
     }
   } catch (err) {
-    console.error("❌ Error updating profile:", err.stack);
     res.status(500).json({ error: err.message });
   }
 });
@@ -182,7 +191,6 @@ app.get('/profile/:userId', async (req, res) => {
       tags,
     });
   } catch (err) {
-    console.error('Error fetching profile:', err);
     res.status(500).send('Error fetching profile: ' + err.message);
   }
 });
@@ -212,6 +220,8 @@ app.get('/profile', async (req, res) => {
   }
 });
 
+// ==== INTEREST ROUTES ====
+
 app.post('/interests', async (req, res) => {
   const { userId, interests } = req.body;
   try {
@@ -232,6 +242,8 @@ app.get('/interests/:userId', async (req, res) => {
   }
 });
 
+// ==== POSTS ====
+
 app.post('/posts', async (req, res) => {
   const { title, content, image_url, user_id, tags } = req.body;
   try {
@@ -247,62 +259,12 @@ app.get('/posts', async (req, res) => {
     const posts = await getPosts();
     res.status(200).json(posts);
   } catch (err) {
-    console.error('Error fetching posts:', err);
-    res.status(500).json({ message: 'Error fetching posts', error: err.message });
+    res.status(500).json({ message: 'Error retrieving posts', error: err.message });
   }
 });
 
-
-// Test route for creating a chat
-app.post('/chats', async (req, res) => {
-  const { type } = req.body;  
-  try {
-    const chat_id = await createChat(type);
-    res.status(201).json({ chat_id });
-  } catch (error) {
-    console.error('Error creating chat:', error);
-    res.status(500).json({ error: 'Failed to create chat' });
-  }
-});
-
-// Test route for inserting a message
-app.post('/message', async (req, res) => {
-  const { chat_id, user_id, content } = req.body;
-  try {
-    const message_id = await insertMessage(chat_id, user_id, content);
-    res.status(201).json({ message_id });
-  } catch (error) {
-    console.error('Error inserting message:', error);
-    res.status(500).json({ error: 'Failed to insert message' });
-  }
-});
-
-// Test route for getting messages from a chat
-app.get('/messages/:chat_id', async (req, res) => {
-  const { chat_id } = req.params;
-  try {
-    const messages = await getMessagesFromChat(chat_id);
-    res.json(messages);
-  } catch (error) {
-    console.error('Error fetching messages:', error);
-    res.status(500).json({ error: 'Failed to fetch messages' });
-  }
-});
-
-app.post('/chats/:chat_id/users', async (req, res) => {
-  const { chat_id } = req.params; 
-  const { user_id } = req.body;  
-
-  try {
-    await addUserToChat(chat_id, user_id);  
-    res.status(200).json({ message: 'User added to chat successfully' });
-  } catch (error) {
-    console.error('Error adding user to chat:', error);
-    res.status(500).json({ error: 'Failed to add user to chat' });
-  }
-});
+// ==== START SERVER ====
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`🚀 Server is running on port ${port}`);
 });
-
