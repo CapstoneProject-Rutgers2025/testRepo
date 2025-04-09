@@ -115,6 +115,32 @@
   line-height: 1.4;
 }
 
+.post-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 10px 0 5px;
+  text-align: center;
+  color: #333;
+}
+
+/* 🔖 Tag Styles */
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 5px 10px;
+}
+
+.tag-badge {
+  background-color: #e0f2f1;
+  color: #00796b;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
 /* 🚦 Accept / Reject Buttons */
 .post-actions {
   display: flex;
@@ -189,11 +215,3 @@
 .create-post-btn:hover {
   background: #0056b3;
 }
-.post-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 10px 0 5px;
-  text-align: center;
-  color: #333;
-}
-

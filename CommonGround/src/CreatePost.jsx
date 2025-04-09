@@ -58,6 +58,9 @@ const CreatePost = () => {
     formData.append('user_id', user_id);
     if (image) formData.append('image', image);
 
+    // ✅ Add tags to FormData as JSON string
+    formData.append('tags', JSON.stringify(selectedTags));
+
     try {
       const response = await fetch('https://testrepo-hkzu.onrender.com/posts', {
         method: 'POST',
@@ -137,7 +140,4 @@ const CreatePost = () => {
   );
 };
 
-
-
 export default CreatePost;
-

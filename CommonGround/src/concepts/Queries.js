@@ -221,20 +221,36 @@ async function createPostsTable() {
     }
 }
 
-// Insert a post
 async function insertPost(title, content, image_url, user_id, tags) {
     const insertQuery = `
-        INSERT INTO posts (title, content, image_url, user_id, tags)
-        VALUES ($1, $2, $3, $4, $5) RETURNING id;
+      INSERT INTO posts (title, content, image_url, user_id, tags)
+      VALUES ($1, $2, $3, $4, $5) RETURNING id;
     `;
+  
     try {
-        const result = await pool.query(insertQuery, [title, content, image_url, user_id,tags]);
-        return result.rows[0].id;
+      // 🔍 Ensure tags is always a JSON string for TEXT column
+      const formattedTags = Array.isArray(tags)
+        ? JSON.stringify(tags)
+        : typeof tags === 'string'
+          ? tags
+          : '[]';
+  
+      const result = await pool.query(insertQuery, [
+        title,
+        content,
+        image_url,
+        user_id,
+        formattedTags,
+      ]);
+  
+      return result.rows[0].id;
     } catch (err) {
-        console.error('Error inserting post', err);
-        throw err;
+      console.error('❌ Error inserting post:', err);
+      throw err;
     }
-}
+  }
+  
+
 
 // Get all posts
 async function getPosts() {

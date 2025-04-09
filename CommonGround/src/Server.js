@@ -34,7 +34,6 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 const port = process.env.PORT || 3000;
 
-// ✅ Manual CORS fix for Netlify + Render
 app.use((req, res, next) => {
   const allowedOrigins = ['https://commonnground.netlify.app', 'http://localhost:5173'];
   const origin = req.headers.origin;
@@ -48,7 +47,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(204); // Handle preflight
+    return res.sendStatus(204);
   }
 
   next();
@@ -59,10 +58,13 @@ app.use(bodyParser.json());
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+// Initialize tables
 createUsersTable();
 createUserProfilesTable();
 createUserInterestsTable();
 createPostsTable();
+
+// === Routes ===
 
 app.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
@@ -234,11 +236,22 @@ app.get('/interests/:userId', async (req, res) => {
   }
 });
 
+// ✅ POSTS route — accepts tags as JSON string and stores it in TEXT column
 app.post('/posts', upload.single('image'), async (req, res) => {
-  const { title, content, user_id, tags } = req.body;
+  const { title, content, user_id } = req.body;
   let image_url = '';
+  let tags = [];
 
   try {
+    if (req.body.tags) {
+      try {
+        tags = JSON.stringify(JSON.parse(req.body.tags)); // Ensures valid JSON string
+      } catch (err) {
+        console.warn("⚠️ Couldn't parse tags. Saving as empty array.");
+        tags = '[]';
+      }
+    }
+
     if (req.file) {
       const result = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
