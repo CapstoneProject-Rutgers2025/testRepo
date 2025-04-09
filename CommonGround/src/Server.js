@@ -239,28 +239,21 @@ app.get('/interests/:userId', async (req, res) => {
   }
 });
 
-app.post('/posts', async (req, res) => {
+app.post('/posts', upload.single('image'), async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://commonnground.netlify.app');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-  const { title, content, image_url, user_id, tags } = req.body;
+  const { title, content, user_id, tags } = req.body; 
+  const image_url = req.file ? req.file.path : null; 
+
   try {
     const postId = await insertPost(title, content, image_url, user_id, tags);
     res.status(201).json({ message: 'Post created successfully', postId });
   } catch (err) {
     console.error('Error creating post:', err);
     res.status(500).json({ message: 'Error creating post', error: err.message });
-  }
-});
-
-app.get('/posts', async (req, res) => {
-  try {
-    const posts = await getPosts();
-    res.status(200).json(posts);
-  } catch (err) {
-    res.status(500).json({ message: 'Error retrieving posts', error: err.message });
   }
 });
 
