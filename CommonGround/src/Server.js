@@ -40,7 +40,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: ['https://commonnground.netlify.app', 'http://localhost:3000'], 
+  origin: ['https://commonnground.netlify.app'], 
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
   allowedHeaders: ['Content-Type', 'Authorization'], 
   credentials: true, 
@@ -257,11 +257,10 @@ app.get('/interests/:userId', async (req, res) => {
 
 app.get('/posts', async (req, res) => {
   try {
-    const posts = await getPosts(); 
-    res.status(200).json(posts); 
+    const posts = await getPosts();
+    res.status(200).json(posts);
   } catch (err) {
-    console.error('Error fetching posts:', err);
-    res.status(500).json({ message: 'Error fetching posts', error: err.message });
+    res.status(500).json({ message: 'Error retrieving posts', error: err.message });
   }
 });
 
