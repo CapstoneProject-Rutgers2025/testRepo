@@ -39,12 +39,14 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: ['https://commonnground.netlify.app'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: ['https://commonnground.netlify.app', 'http://localhost:3000'], 
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
   allowedHeaders: ['Content-Type', 'Authorization'], 
-  credentials: true,
+  credentials: true, 
 }));
 app.use(bodyParser.json());
+// Handle preflight requests
+app.options('*', cors());
 
 // ✅ Use memoryStorage for Cloudinary upload
 const storage = multer.memoryStorage();
@@ -237,7 +239,7 @@ app.get('/interests/:userId', async (req, res) => {
   }
 });
 
-app.post('/CreatePost', async (req, res) => {
+app.post('/posts', async (req, res) => {
   const { title, content, image_url, user_id, tags } = req.body;
   try {
     const postId = await insertPost(title, content, image_url, user_id, tags);
