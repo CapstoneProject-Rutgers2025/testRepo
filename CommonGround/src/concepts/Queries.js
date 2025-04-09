@@ -238,20 +238,20 @@ async function insertPost(title, content, image_url, user_id, tags) {
 
 // Get all posts
 async function getPosts() {
-    const getPostsQuery = `
-        SELECT posts.id, posts.title, posts.content, posts.image_url, posts.tags, posts.created_at, users.id as user_id, users.username AS user_name 
-        FROM posts
-        JOIN users ON posts.user_id = users.id
-        ORDER BY posts.created_at DESC;
-    `;
+    //const getPostsQuery = 
+     //   SELECT posts.id, posts.title, posts.content, posts.image_url, posts.tags, posts.created_at, users.id as user_id, users.username AS user_name 
+     //  FROM posts
+     //   JOIN users ON posts.user_id = users.id
+     //   ORDER BY posts.created_at DESC;
+    ;
     try {
-        const result = await pool.query(getPostsQuery);
-        return result.rows;
-    } catch (err) {
-        console.error('Error retrieving posts', err);
+        const result = await pool.query('SELECT * FROM posts ORDER BY created_at DESC');
+        return result.rows; 
+      } catch (err) {
+        console.error('Error fetching posts:', err);
         throw err;
+      }
     }
-}
 
 // Create a chat
 async function createChat(type) {

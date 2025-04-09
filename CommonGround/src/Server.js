@@ -257,6 +257,16 @@ app.post('/posts', upload.single('image'), async (req, res) => {
   }
 });
 
+app.get('/posts', async (req, res) => {
+  try {
+    const posts = await getPosts(); 
+    res.status(200).json(posts); 
+  } catch (err) {
+    console.error('Error fetching posts:', err);
+    res.status(500).json({ message: 'Error fetching posts', error: err.message });
+  }
+});
+
 
 // Test route for creating a chat
 app.post('/chats', async (req, res) => {
