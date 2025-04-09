@@ -1,3 +1,4 @@
+//dashboard
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -110,7 +111,7 @@ const Dashboard = () => {
                 {/* 📝 Title */}
                 <h3 className="post-title">{posts[0].title}</h3>
 
-               {/* 🖼️ Image */}
+                {/* 🖼️ Image */}
                 {posts[0].image_url && (
                   <div className="post-image">
                     <img src={posts[0].image_url} alt="Post" />
@@ -145,3 +146,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

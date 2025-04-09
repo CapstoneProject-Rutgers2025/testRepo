@@ -25,30 +25,21 @@ import {
   createPostsTable,
   insertPost,
   getPosts,
-  createChat,
-  addUserToChat,
-  getMessagesFromChat,
-  insertMessage
 } from './concepts/Queries.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
- 
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: ['https://commonnground.netlify.app', 'http://localhost:3000'], 
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-  allowedHeaders: ['Content-Type', 'Authorization'], 
-  credentials: true, 
+  origin: ['https://commonnground.netlify.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
 }));
 app.use(bodyParser.json());
-// Handle preflight requests
-app.options('*', cors());
-
 
 // ✅ Use memoryStorage for Cloudinary upload
 const storage = multer.memoryStorage();
@@ -59,7 +50,6 @@ createUsersTable();
 createUserProfilesTable();
 createUserInterestsTable();
 createPostsTable();
-
 
 // ===== Routes ===== //
 
@@ -242,79 +232,26 @@ app.get('/interests/:userId', async (req, res) => {
   }
 });
 
- app.post('/posts', async (req, res) => {
-
+app.post('/posts', async (req, res) => {
   const { title, content, image_url, user_id, tags } = req.body;
-
   try {
     const postId = await insertPost(title, content, image_url, user_id, tags);
     res.status(201).json({ message: 'Post created successfully', postId });
   } catch (err) {
-    console.error('Error creating post:', err);
     res.status(500).json({ message: 'Error creating post', error: err.message });
   }
 });
 
 app.get('/posts', async (req, res) => {
   try {
-    const posts = await getPosts(); 
-    res.status(200).json(posts); 
+    const posts = await getPosts();
+    res.status(200).json(posts);
   } catch (err) {
-    console.error('Error fetching posts:', err);
-    res.status(500).json({ message: 'Error fetching posts', error: err.message });
-  }
-});
-
-
-// Test route for creating a chat
-app.post('/chats', async (req, res) => {
-  const { type } = req.body;  
-  try {
-    const chat_id = await createChat(type);
-    res.status(201).json({ chat_id });
-  } catch (error) {
-    console.error('Error creating chat:', error);
-    res.status(500).json({ error: 'Failed to create chat' });
-  }
-});
-
-// Test route for inserting a message
-app.post('/message', async (req, res) => {
-  const { chat_id, user_id, content } = req.body;
-  try {
-    const message_id = await insertMessage(chat_id, user_id, content);
-    res.status(201).json({ message_id });
-  } catch (error) {
-    console.error('Error inserting message:', error);
-    res.status(500).json({ error: 'Failed to insert message' });
-  }
-});
-
-// Test route for getting messages from a chat
-app.get('/messages/:chat_id', async (req, res) => {
-  const { chat_id } = req.params;
-  try {
-    const messages = await getMessagesFromChat(chat_id);
-    res.json(messages);
-  } catch (error) {
-    console.error('Error fetching messages:', error);
-    res.status(500).json({ error: 'Failed to fetch messages' });
-  }
-});
-
-app.post('/chats/:chat_id/users', async (req, res) => {
-  const { chat_id } = req.params; 
-  const { user_id } = req.body;  
-
-  try {
-    await addUserToChat(chat_id, user_id);  
-    res.status(200).json({ message: 'User added to chat successfully' });
-  } catch (error) {
-    console.error('Error adding user to chat:', error);
-    res.status(500).json({ error: 'Failed to add user to chat' });
+    res.status(500).json({ message: 'Error retrieving posts', error: err.message });
   }
 });
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
