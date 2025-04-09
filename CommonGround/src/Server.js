@@ -36,8 +36,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const __imgname = path.resolve(); 
 
-// files from uploads directory will be served as static files
-app.use('/uploads', express.static(path.join(__imgname, 'uploads')));
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -62,6 +61,8 @@ createUserProfilesTable();
 createUserInterestsTable();
 createPostsTable();
 
+// files from uploads directory will be served as static files
+app.use('/uploads', express.static(path.join(__imgname, 'uploads')));
 // ===== Routes ===== //
 
 app.post('/signup', async (req, res) => {
