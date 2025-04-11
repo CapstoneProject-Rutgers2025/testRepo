@@ -93,10 +93,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start the server after everything is initialized
-server.listen(port, () => {
-  console.log(`🚀 Server is running on port ${port}`);
-});
 
 
 app.use((req, res, next) => {
