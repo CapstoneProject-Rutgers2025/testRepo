@@ -23,7 +23,7 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
   useEffect(() => {
     if (!chatId) return;
 
-    fetch(`http://localhost:3000/messages/${chatId}`)
+    fetch(`https://testrepo-hkzu.onrender.com/messages/${chatId}`)
       .then((res) => res.json())
       .then((data) => setMessages(data))
       .catch((err) => console.error('Failed to fetch messages', err));
@@ -33,7 +33,7 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
     if (!newMsg.trim() || !userId || !chatId) return;
 
     try {
-      const res = await fetch('http://localhost:3000/message', {
+      const res = await fetch('https://testrepo-hkzu.onrender.com/message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

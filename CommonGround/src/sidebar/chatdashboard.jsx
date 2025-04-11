@@ -15,7 +15,7 @@ const ChatDashboard = ({ isSidebarOpen }) => {
 
     const { id: user_id } = jwtDecode(token);
 
-    fetch(`http://localhost:3000/user-chats/${user_id}`)
+    fetch(`https://testrepo-hkzu.onrender.com/user-chats/${user_id}`)
       .then((res) => res.json())
       .then((data) => {
         const formattedChats = data.map(chat => ({
@@ -34,7 +34,7 @@ const ChatDashboard = ({ isSidebarOpen }) => {
   useEffect(() => {
     if (!activeChat) return;
 
-    fetch(`http://localhost:3000/chat-users/${activeChat.id}`)
+    fetch(`https://testrepo-hkzu.onrender.com/chat-users/${activeChat.id}`)
       .then(res => res.json())
       .then(data => setMembers(data))
       .catch(err => console.error('Failed to fetch chat members', err));

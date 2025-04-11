@@ -1,5 +1,5 @@
 import React from 'react';
-import './ChatBubble.css';
+import './chatbubble.css';
 
 const ChatBubble = ({ text, isSent, name, avatarUrl }) => {
   return (
