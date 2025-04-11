@@ -264,61 +264,56 @@ app.post('/posts', upload.single('image'), async (req, res) => {
     }
 
 
-async function saveMessage(chatId, userId, content) {
-  const query = `
-    INSERT INTO messages (chat_id, user_id, content, created_at)
-    VALUES ($1, $2, $3, NOW())
-    RETURNING id, chat_id, user_id, content, created_at;
-  `;
-  try {
-    const result = await pool.query(query, [chatId, userId, content]);
-    return result.rows[0]; // Return the saved message
-  } catch (err) {
-    console.error('Error saving message:', err);
-    throw err;
-  }
-}
-
-// WebSocket logic
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-
-  // Join a chat room
-  socket.on('joinRoom', (chatId) => {
-    socket.join(chatId);
-    console.log(`User ${socket.id} joined room ${chatId}`);
-  });
-
-  // Leave a chat room
-  socket.on('leaveRoom', (chatId) => {
-    socket.leave(chatId);
-    console.log(`User ${socket.id} left room ${chatId}`);
-  });
-
-  // Handle incoming messages
-  socket.on('sendMessage', async (message) => {
-    console.log('Message received:', message);
-
-    try {
-      // Save the message to the database
-      const savedMessage = await saveMessage(
-        message.chat_id,
-        message.user_id,
-        message.content
-      );
-
-      // Broadcast the saved message to the specific chat room
-      io.to(message.chat_id).emit('receiveMessage', savedMessage);
-    } catch (err) {
-      console.error('Error handling message:', err);
+    async function saveMessage(chatId, senderId, content) {
+      const query = `
+        INSERT INTO messages (chat_id, sender_id, content, sent_at)
+        VALUES ($1, $2, $3, NOW())
+        RETURNING id, chat_id, sender_id, content, sent_at;
+      `;
+      try {
+        const result = await pool.query(query, [chatId, senderId, content]);
+        return result.rows[0]; // Return the saved message
+      } catch (err) {
+        console.error('Error saving message:', err);
+        throw err;
+      }
     }
-  });
-
-  // Handle user disconnect
-  socket.on('disconnect', () => {
-    console.log('A user disconnected:', socket.id);
-  });
-});
+    
+    io.on('connection', (socket) => {
+      console.log('A user connected:', socket.id);
+    
+      socket.on('joinRoom', (chatId) => {
+        socket.join(chatId);
+        console.log(`User ${socket.id} joined room ${chatId}`);
+      });
+    
+      socket.on('leaveRoom', (chatId) => {
+        socket.leave(chatId);
+        console.log(`User ${socket.id} left room ${chatId}`);
+      });
+    
+      socket.on('sendMessage', async (message) => {
+        console.log('Message received:', message);
+    
+        try {
+          // Save the message to the database
+          const savedMessage = await saveMessage(
+            message.chat_id,
+            message.sender_id,
+            message.content
+          );
+    
+          // Broadcast the saved message to the specific chat room
+          io.to(message.chat_id).emit('receiveMessage', savedMessage);
+        } catch (err) {
+          console.error('Error handling message:', err);
+        }
+      });
+    
+      socket.on('disconnect', () => {
+        console.log('A user disconnected:', socket.id);
+      });
+    });
 
 // Start the server
 const PORT = process.env.PORT || 3000;
@@ -415,16 +410,22 @@ app.post('/message', async (req, res) => {
 });
 
 // Test route for getting messages from a chat
-app.get('/messages/:chat_id', async (req, res) => {
+app.get('/messages/:chatId', async (req, res) => {
   const { chatId } = req.params;
 
   const query = `
-    SELECT messages.id, messages.chat_id, messages.user_id, messages.content, messages.created_at, 
-           users.username AS sender, users.profile_picture
+    SELECT 
+      messages.id, 
+      messages.chat_id, 
+      messages.sender_id, 
+      messages.content, 
+      messages.sent_at, 
+      users.username AS sender, 
+      users.profile_picture
     FROM messages
-    JOIN users ON messages.user_id = users.id
+    JOIN users ON messages.sender_id = users.id
     WHERE messages.chat_id = $1
-    ORDER BY messages.created_at ASC;
+    ORDER BY messages.sent_at ASC;
   `;
 
   try {
