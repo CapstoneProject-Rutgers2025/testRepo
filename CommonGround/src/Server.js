@@ -39,7 +39,10 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+});
 
 // Create an HTTP server
 const server = http.createServer(app);
@@ -328,10 +331,6 @@ app.post('/posts', upload.single('image'), async (req, res) => {
     }
 
 
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-
     // ✅ Upload image if exists
     if (req.file) {
       const result = await new Promise((resolve, reject) => {
@@ -505,9 +504,7 @@ app.get('/chat-users/:chat_id', async (req, res) => {
 
 
 
-app.listen(port, () => {
-  console.log(`🚀 Server is running on port ${port}`);
-});
+
 
 
 
