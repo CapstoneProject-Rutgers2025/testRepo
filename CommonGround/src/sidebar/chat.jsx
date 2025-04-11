@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import './chat.css';
 import ChatBubble from './chatbubble';
-import { jwtDecode } from 'jwt-decode';
+import jwtDecode from 'jwt-decode';
+import { io } from 'socket.io-client';
+
+const BASE_URL =
+  process.env.NODE_ENV === 'production'
+    ? process.env.VITE_RENDER_URL
+    : process.env.VITE_LOCAL_URL;
+
+const socket = io(BASE_URL); // Connect to the WebSocket server
 
 const ChatRoom = ({ topic = 'Chat', chatId }) => {
   const [messages, setMessages] = useState([]);
@@ -23,43 +31,49 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
   useEffect(() => {
     if (!chatId) return;
 
-    fetch(`https://testrepo-hkzu.onrender.com/messages/${chatId}`)
+    // Fetch existing messages for the chat room
+    fetch(`${BASE_URL}/messages/${chatId}`)
       .then((res) => res.json())
       .then((data) => setMessages(data))
       .catch((err) => console.error('Failed to fetch messages', err));
+
+    // Join the chat room via WebSocket
+    socket.emit('joinRoom', chatId);
+
+    // Listen for new messages from the server
+    socket.on('receiveMessage', (message) => {
+      setMessages((prev) => [...prev, message]);
+    });
+
+    // Cleanup on component unmount
+    return () => {
+      socket.emit('leaveRoom', chatId); // Leave the chat room
+      socket.off('receiveMessage'); // Remove the listener
+    };
   }, [chatId]);
 
-  const sendMessage = async () => {
+  const sendMessage = () => {
     if (!newMsg.trim() || !userId || !chatId) return;
 
-    try {
-      const res = await fetch('https://testrepo-hkzu.onrender.com/message', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: chatId,
-          user_id: userId,
-          content: newMsg,
-        }),
-      });
+    const message = {
+      chat_id: chatId,
+      user_id: userId,
+      content: newMsg,
+    };
 
-      if (res.ok) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            content: newMsg,
-            sender: 'You',
-            profile_picture: '', // Optional: replace with actual profile picture URL if known
-            sender_id: userId,
-          },
-        ]);
-        setNewMsg('');
-      }
-    } catch (err) {
-      console.error('Failed to send message:', err);
-    }
+    // Send the message to the server via WebSocket
+    socket.emit('sendMessage', message);
+
+    // Optimistically update the UI
+    setMessages((prev) => [
+      ...prev,
+      {
+        ...message,
+        sender: 'You',
+        profile_picture: '', // Optional: replace with actual profile picture URL
+      },
+    ]);
+    setNewMsg('');
   };
 
   return (
@@ -75,7 +89,7 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
           messages.map((msg, i) => (
             <div
               key={i}
-              className={`chat-message ${msg.sender_id === userId ? 'me' : ''}`}
+              className={`chat-message ${msg.user_id === userId ? 'me' : ''}`}
             >
               <div className="chat-meta">
                 <img

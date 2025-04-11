@@ -1,11 +1,16 @@
 //dashboard
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
+import jwtDecode from "jwt-decode";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus } from "react-icons/fa";
 import Sidebar from "./sidebar/side";
 import "./dashboard.css";
+
+const BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.VITE_RENDER_URL
+    : process.env.VITE_LOCAL_URL;
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -38,7 +43,10 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await fetch("https://testrepo-hkzu.onrender.com/posts");
+        const response = await fetch(`${BASE_URL}/posts`);
+        if (!response.ok) {
+          throw new Error(`Error fetching posts: ${response.statusText}`);
+        }
         const data = await response.json();
         const formatted = data.map((post) => ({
           id: post.id,
@@ -146,4 +154,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

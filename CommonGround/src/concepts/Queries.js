@@ -59,6 +59,21 @@ async function createUserInterestsTable() {
     }
 }
 
+//create messages table
+async function createMessagesTable() {
+    const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        chat_id INTEGER NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+        sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        FOREIGN KEY (chat_id) REFERENCES chats(id) on delete cascade,
+        FORIEGn Key (sender_id) REFERENCES users(id) on delete cascade
+        )
+        `;
+    }
+
 // Insert interests for a user
 async function insertUserInterests(userId, interests) {
     const client = await pool.connect();
@@ -351,6 +366,7 @@ export {
     createUsersTable,
     createUserProfilesTable,
     createUserInterestsTable,
+    createMessagesTable,
     createUser,
     insertUser,
     isPasswordDuplicate,
