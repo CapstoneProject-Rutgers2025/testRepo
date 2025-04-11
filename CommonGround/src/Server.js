@@ -41,6 +41,9 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Create an HTTP server
+const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin: ['https://commonnground.netlify.app', 'http://localhost:5173'], // Allow frontend origins
@@ -64,6 +67,7 @@ async function saveMessage(chatId, senderId, content) {
   }
 }
 
+app.set('io', io);
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
@@ -100,9 +104,6 @@ io.on('connection', (socket) => {
   });
 });
 
-
-//
-app.set('io', io);
 
 app.use((req, res, next) => {
   const allowedOrigins = ['https://commonnground.netlify.app', 'http://localhost:5173'];
