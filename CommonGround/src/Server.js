@@ -414,19 +414,19 @@ app.get('/messages/:chatId', async (req, res) => {
   const { chatId } = req.params;
 
   const query = `
-    SELECT 
-      messages.id, 
-      messages.chat_id, 
-      messages.sender_id, 
-      messages.content, 
-      messages.sent_at, 
-      users.username AS sender, 
-      users.profile_picture
-    FROM messages
-    JOIN users ON messages.sender_id = users.id
-    WHERE messages.chat_id = $1
-    ORDER BY messages.sent_at ASC;
-  `;
+      SELECT 
+        messages.id,
+        messages.content,
+        messages.created_at,
+        messages.sender_id,
+        users.username AS sender,
+        user_profiles.profile_picture
+      FROM messages
+      JOIN users ON messages.sender_id = users.id
+      LEFT JOIN user_profiles ON users.id = user_profiles.user_id
+      WHERE messages.chat_id = $1
+      ORDER BY messages.created_at ASC
+    `;
 
   try {
     const result = await pool.query(query, [chatId]);
