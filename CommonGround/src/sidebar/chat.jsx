@@ -1,24 +1,65 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import './chat.css';
 import ChatBubble from './chatbubble';
-import './chat.css'; 
+import { jwtDecode } from 'jwt-decode';
 
-const ChatRoom = ({ topic = 'Resume Development', messages, setMessages }) => {
+const ChatRoom = ({ topic = 'Chat', chatId }) => {
+  const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState('');
+  const [userId, setUserId] = useState(null);
 
-  
-  const sendMessage = () => {
-    if (!newMsg.trim()) return;
-  
-    
-    const newMessage = {
-      text: newMsg,
-      isSent: true,
-      name: 'User',
-      avatarUrl: 'https://i.pravatar.cc/36?u=you', 
-    };
-  
-    setMessages([...messages, newMessage]);
-    setNewMsg('');
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const { id } = jwtDecode(token);
+      setUserId(id);
+    } catch (err) {
+      console.error('Invalid token', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!chatId) return;
+
+    fetch(`http://localhost:3000/messages/${chatId}`)
+      .then((res) => res.json())
+      .then((data) => setMessages(data))
+      .catch((err) => console.error('Failed to fetch messages', err));
+  }, [chatId]);
+
+  const sendMessage = async () => {
+    if (!newMsg.trim() || !userId || !chatId) return;
+
+    try {
+      const res = await fetch('http://localhost:3000/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: chatId,
+          user_id: userId,
+          content: newMsg,
+        }),
+      });
+
+      if (res.ok) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            content: newMsg,
+            sender: 'You',
+            profile_picture: '', // Optional: replace with actual profile picture URL if known
+            sender_id: userId,
+          },
+        ]);
+        setNewMsg('');
+      }
+    } catch (err) {
+      console.error('Failed to send message:', err);
+    }
   };
 
   return (
@@ -28,20 +69,26 @@ const ChatRoom = ({ topic = 'Resume Development', messages, setMessages }) => {
       </div>
 
       <div className="chat-messages">
-        {messages.length === 0 && (
-          <p style={{ textAlign: 'center', color: '#aaa' }}>
-            No messages yet.
-          </p>
-        )}
-            {messages.map((msg, i) => (
-            <ChatBubble
+        {messages.length === 0 ? (
+          <p style={{ textAlign: 'center', color: '#aaa' }}>No messages yet.</p>
+        ) : (
+          messages.map((msg, i) => (
+            <div
               key={i}
-              text={msg.text}
-              isSent={msg.isSent}
-              name={msg.name}
-              avatarUrl={msg.avatarUrl}
-            />
-          ))}
+              className={`chat-message ${msg.sender_id === userId ? 'me' : ''}`}
+            >
+              <div className="chat-meta">
+                <img
+                  src={msg.profile_picture || '/default-avatar.png'}
+                  alt="pfp"
+                  className="avatar-circle"
+                />
+                <span className="sender-name">{msg.sender}</span>
+              </div>
+              <div className="chat-bubble">{msg.content}</div>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="chat-input-bar">

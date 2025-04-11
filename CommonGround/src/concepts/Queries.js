@@ -268,20 +268,26 @@ async function getPosts() {
         throw err;
     }
 }
-async function createChat(type) {
-    const createChatQuery = `
-      INSERT INTO chats (type)
-      VALUES ($1) 
-      RETURNING id
-    `;
-    try {
-      const result = await pool.query(createChatQuery, [type]);
-      return result.rows[0].id;  
-    } catch (error) {
-      console.error('Error creating chat:', error);
-      throw error;
-    }
+async function createChat(type, post_id, user_id) {
+  const createChatQuery = `
+    INSERT INTO chats (type, post_id, user_id)
+    VALUES ($1, $2, $3) 
+    RETURNING id
+  `;
+  try {
+    const result = await pool.query(createChatQuery, [type, post_id, user_id]);
+    const chatId = result.rows[0].id;
+
+    // ✅ Log when chat is created for better debugging
+    console.log(`✅ Chat created! Chat ID: ${chatId}, Post ID: ${post_id}, User ID: ${user_id}`);
+
+    return chatId;
+  } catch (error) {
+    console.error('❌ Error creating chat:', error);
+    throw error;
   }
+}
+
 
 // Add user
 async function addUserToChat(chat_id, user_id) {
@@ -299,23 +305,30 @@ async function addUserToChat(chat_id, user_id) {
     }
   }
 
-  // Get messages from chat
-async function getMessagesFromChat(chat_id) {
+  async function getMessagesFromChat(chat_id) {
     const getMessagesQuery = `
-      SELECT messages.id, messages.content, messages.created_at, users.username AS sender
+      SELECT 
+        messages.id,
+        messages.content,
+        messages.created_at,
+        messages.sender_id,
+        users.username AS sender,
+        user_profiles.profile_picture
       FROM messages
       JOIN users ON messages.sender_id = users.id
+      LEFT JOIN user_profiles ON users.id = user_profiles.user_id
       WHERE messages.chat_id = $1
       ORDER BY messages.created_at ASC
     `;
     try {
       const result = await pool.query(getMessagesQuery, [chat_id]);
-      return result.rows;  
+      return result.rows;
     } catch (error) {
       console.error('Error fetching messages:', error);
       throw error;
     }
   }
+  
 
 
 async function insertMessage(chat_id, user_id, content) {

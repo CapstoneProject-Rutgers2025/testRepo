@@ -1,92 +1,95 @@
-import React, { useState } from 'react';
-import ChatRoom from './chat'; 
+import React, { useState, useEffect } from 'react';
+import ChatRoom from './chat';
+import './chat.css';
+import { jwtDecode } from 'jwt-decode';
 import { Link } from 'react-router-dom';
 
-
-import './chat.css';
-
 const ChatDashboard = ({ isSidebarOpen }) => {
-    const [activeChat, setActiveChat] = useState('Resume Development');
+  const [chats, setChats] = useState([]);
+  const [activeChat, setActiveChat] = useState(null);
+  const [members, setMembers] = useState([]);
 
-  const chats = [
-    { id: 1, name: 'Design my living room with me' },
-    { id: 2, name: 'Resume Development' },
-  ];
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
-  const members = [
-    { id: 'user1', name: 'User' },
-    { id: 'user2', name: 'User2' },
-    { id: 'user3', name: 'User3' },
-    { id: 'user4', name: 'User4' }
-  ];
+    const { id: user_id } = jwtDecode(token);
 
-  const [chatMessages, setChatMessages] = useState({
-    'Design my living room with me': [
-      {
-        text: "Let's move the couch to the right.",
-        isSent: false,
-        name: "User2",
-        avatarUrl: "https://i.pravatar.cc/150?img=8"
-      }
-    ],
-    'Resume Development': [
-      {
-        text: "Hey, can you help me with my resume?",
-        isSent: false,
-        name: "User2",
-        avatarUrl: "https://i.pravatar.cc/150?img=8"
-      },
-      {
-        text: "Of course! What role are you applying for?",
-        isSent: false,
-        name: "User3",
-        avatarUrl: "https://i.pravatar.cc/150?img=1"
-      }
-    ]
-  });
+    fetch(`http://localhost:3000/user-chats/${user_id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const formattedChats = data.map(chat => ({
+          id: chat.id,
+          name: chat.title || `Chat ${chat.id}`,
+        }));
+
+        setChats(formattedChats);
+        if (formattedChats.length > 0) {
+          setActiveChat(formattedChats[0]);
+        }
+      })
+      .catch((err) => console.error('Failed to load chats', err));
+  }, []);
+
+  useEffect(() => {
+    if (!activeChat) return;
+
+    fetch(`http://localhost:3000/chat-users/${activeChat.id}`)
+      .then(res => res.json())
+      .then(data => setMembers(data))
+      .catch(err => console.error('Failed to fetch chat members', err));
+  }, [activeChat]);
 
   return (
-<div className={`chat-dashboard ${isSidebarOpen ? 'shift' : ''}`}>
-      {/* Left Sidebar: List of Chats */}
+    <div className={`chat-dashboard ${isSidebarOpen ? 'shift' : ''}`}>
+      {/* ✅ LEFT SIDEBAR — Chat Groups */}
       <div className="chat-list">
         <h3>Chats</h3>
         {chats.map((chat) => (
           <div
             key={chat.id}
-            className={`chat-item ${activeChat === chat.name ? 'active' : ''}`}
-            onClick={() => setActiveChat(chat.name)}
+            className={`chat-item ${activeChat?.id === chat.id ? 'active' : ''}`}
+            onClick={() => setActiveChat(chat)}
           >
             {chat.name}
           </div>
         ))}
       </div>
 
-      {/* Middle Section: ChatRoom */}
+      {/* ✅ CENTER — Chat UI */}
       <div className="chat-room-wrapper">
-      <ChatRoom
-          topic={activeChat}
-          messages={chatMessages[activeChat]} 
-          setMessages={(newMessages) =>
-            setChatMessages((prev) => ({ ...prev, [activeChat]: newMessages }))
-  }
-/>
+        {activeChat ? (
+          <ChatRoom
+            topic={activeChat.name}
+            chatId={activeChat.id}
+          />
+        ) : (
+          <div style={{ padding: '2rem', color: '#aaa' }}>Select a chat to begin</div>
+        )}
       </div>
 
-      {/* Right Panel: Members Info */}
+      {/* ✅ RIGHT SIDEBAR — Members */}
       <div className="chat-info">
-        <h3>{activeChat}</h3>
-        <p>Group members: {members.length}</p>
-        <div className="chat-members">
-        {members.map((member, idx) => (
-        <div key={idx} className="chat-member">
-          <div className="avatar-circle" />
-          <Link to={`/profile/${member.id}`} className="member-name-link">
-            {member.name}
-          </Link>
-        </div>
-      ))}
-
-        </div>
+        {activeChat && (
+          <>
+            <h3>{activeChat.name}</h3>
+            <p>Group members: {members.length}</p>
+            <div className="chat-members">
+              {members.map((user) => (
+                <div key={user.id} className="chat-member">
+                  <img
+                    src={user.profile_picture || '/default-avatar.png'}
+                    alt="pfp"
+                    className="avatar-circle"
+                  />
+                  <Link to={`/profile/${user.id}`} className="member-name-link">
+                    {user.username}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -241,43 +241,55 @@ app.get('/interests/:userId', async (req, res) => {
   }
 });
 
-// ✅ POSTS route — accepts tags as JSON string and stores it in TEXT column
 app.post('/posts', upload.single('image'), async (req, res) => {
   const { title, content, user_id } = req.body;
   let image_url = '';
-  let tags = [];
+  let tags = '[]'; // Default to empty array JSON string
 
   try {
     if (req.body.tags) {
       try {
-        tags = JSON.stringify(JSON.parse(req.body.tags)); // Ensures valid JSON string
-      } catch (err) {
+        tags = JSON.stringify(JSON.parse(req.body.tags)); // Force valid JSON
+      } catch {
         console.warn("⚠️ Couldn't parse tags. Saving as empty array.");
-        tags = '[]';
       }
     }
 
+    // ✅ Upload image if exists
     if (req.file) {
       const result = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           { folder: 'post_images' },
-          (err, result) => {
-            if (err) reject(err);
-            else resolve(result);
-          }
+          (err, result) => err ? reject(err) : resolve(result)
         );
         streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
       });
       image_url = result.secure_url;
     }
 
+    // ✅ 1. Create post
     const postId = await insertPost(title, content, image_url, user_id, tags);
-    res.status(201).json({ message: 'Post created successfully', postId });
+     console.log("Creating chat with:", { postId, user_id });
+
+
+    // ✅ 2. Auto-create group chat
+    const chatId = await createChat('group', postId, user_id); 
+
+    // ✅ 3. Add user to chat
+    await addUserToChat(chatId, user_id);
+
+    res.status(201).json({
+      message: `Post created and group chat started!`,
+      postId,
+      chatId
+    });
+
   } catch (err) {
-    console.error('❌ Error creating post:', err.message);
-    res.status(500).json({ message: 'Error creating post', error: err.message });
+    console.error('❌ Error creating post + chat:', err.message);
+    res.status(500).json({ message: 'Error creating post/chat', error: err.message });
   }
 });
+
 
 app.get('/posts', async (req, res) => {
   try {
@@ -287,17 +299,37 @@ app.get('/posts', async (req, res) => {
     res.status(500).json({ message: 'Error retrieving posts', error: err.message });
   }
 });
+
+app.get('/posts/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(`SELECT * FROM posts WHERE id = $1`, [id]);
+    if (result.rows.length === 0) return res.status(404).send('Post not found');
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch post' });
+  }
+});
+
 // Test route for creating a chat
 app.post('/chats', async (req, res) => {
-  const { type } = req.body;  
+  const { type, post_id, user_id } = req.body;
+
+  if (!type || !post_id || !user_id) {
+    return res.status(400).json({ error: 'Missing required fields: type, post_id, or user_id' });
+  }
+
   try {
-    const chat_id = await createChat(type);
-    res.status(201).json({ chat_id });
+    const chat_id = await createChat(type, post_id, user_id);
+    await addUserToChat(chat_id, user_id); // Add creator to chat_users table
+
+    res.status(201).json({ message: 'Chat created', chat_id });
   } catch (error) {
     console.error('Error creating chat:', error);
     res.status(500).json({ error: 'Failed to create chat' });
   }
 });
+
 
 // Test route for inserting a message
 app.post('/message', async (req, res) => {
@@ -336,6 +368,49 @@ app.post('/chats/:chat_id/users', async (req, res) => {
   }
 });
 
+app.get('/user-chats/:user_id', async (req, res) => {
+  const { user_id } = req.params;
+
+  try {
+    const result = await pool.query(`
+      SELECT chats.*, posts.title
+      FROM chats
+      JOIN chat_users ON chats.id = chat_users.chat_id
+      LEFT JOIN posts ON chats.post_id = posts.id
+      WHERE chat_users.user_id = $1
+      ORDER BY chats.created_at DESC
+    `, [user_id]);
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching user chats:', error);
+    res.status(500).json({ error: 'Failed to fetch user chats' });
+  }
+});
+
+app.get('/chat-users/:chat_id', async (req, res) => {
+  const { chat_id } = req.params;
+  try {
+    const result = await pool.query(`
+      SELECT users.id, users.username, user_profiles.profile_picture
+      FROM chat_users
+      JOIN users ON users.id = chat_users.user_id
+      LEFT JOIN user_profiles ON users.id = user_profiles.user_id
+      WHERE chat_users.chat_id = $1
+    `, [chat_id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching chat users:', err);
+    res.status(500).json({ error: 'Failed to get users in chat' });
+  }
+});
+
+
+
 app.listen(port, () => {
   console.log(`🚀 Server is running on port ${port}`);
 });
+
+
+
