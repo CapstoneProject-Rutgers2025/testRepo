@@ -41,6 +41,17 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 const port = process.env.PORT || 3000;
 
+const io = new Server(server, {
+  cors: {
+    origin: ['https://commonnground.netlify.app', 'http://localhost:5173'], // Allow frontend origins
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
+//
+app.set('io', io);
+
 app.use((req, res, next) => {
   const allowedOrigins = ['https://commonnground.netlify.app', 'http://localhost:5173'];
   const origin = req.headers.origin;
@@ -343,6 +354,10 @@ server.listen(PORT, () => {
 
     // ✅ 3. Add user to chat
     await addUserToChat(chatId, user_id);
+
+    // ✅ 4. Notify users in the chat room 
+    const io = req.app.get('io'); // Get the `io` instance
+    io.to(chatId).emit('newChat', { chatId, postId, user_id });
 
     res.status(201).json({
       message: `Post created and group chat started!`,

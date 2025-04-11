@@ -252,7 +252,6 @@ async function insertPost(title, content, image_url, user_id, tags) {
   }
   
 
-
 // Get all posts
 async function getPosts() {
     const getPostsQuery = `
