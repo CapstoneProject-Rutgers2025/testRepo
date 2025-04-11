@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
+import ChatBubble from './chatbubble';
 import './chat.css'; 
 
-const ChatRoom = ({ topic = 'Resume Development' }) => {
-  const [messages, setMessages] = useState([]);
+const ChatRoom = ({ topic = 'Resume Development', messages, setMessages }) => {
   const [newMsg, setNewMsg] = useState('');
 
+  
   const sendMessage = () => {
     if (!newMsg.trim()) return;
-    setMessages([...messages, { text: newMsg, isSent: true }]);
+  
+    
+    const newMessage = {
+      text: newMsg,
+      isSent: true,
+      name: 'User',
+      avatarUrl: 'https://i.pravatar.cc/36?u=you', 
+    };
+  
+    setMessages([...messages, newMessage]);
     setNewMsg('');
   };
 
@@ -23,14 +33,18 @@ const ChatRoom = ({ topic = 'Resume Development' }) => {
             No messages yet.
           </p>
         )}
-        {messages.map((msg, i) => (
-          <div key={i} className={`chat-message ${msg.isSent ? 'me' : ''}`}>
-            {msg.text}
-          </div>
-        ))}
+            {messages.map((msg, i) => (
+            <ChatBubble
+              key={i}
+              text={msg.text}
+              isSent={msg.isSent}
+              name={msg.name}
+              avatarUrl={msg.avatarUrl}
+            />
+          ))}
       </div>
 
-      <div className="chat-input">
+      <div className="chat-input-bar">
         <input
           type="text"
           value={newMsg}

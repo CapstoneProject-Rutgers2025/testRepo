@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import ChatRoom from './chat'; 
+import { Link } from 'react-router-dom';
+
+
 import './chat.css';
 
 const ChatDashboard = ({ isSidebarOpen }) => {
@@ -10,7 +13,37 @@ const ChatDashboard = ({ isSidebarOpen }) => {
     { id: 2, name: 'Resume Development' },
   ];
 
-  const members = ['User', 'User2', 'User3', 'User4'];
+  const members = [
+    { id: 'user1', name: 'User' },
+    { id: 'user2', name: 'User2' },
+    { id: 'user3', name: 'User3' },
+    { id: 'user4', name: 'User4' }
+  ];
+
+  const [chatMessages, setChatMessages] = useState({
+    'Design my living room with me': [
+      {
+        text: "Let's move the couch to the right.",
+        isSent: false,
+        name: "User2",
+        avatarUrl: "https://i.pravatar.cc/150?img=8"
+      }
+    ],
+    'Resume Development': [
+      {
+        text: "Hey, can you help me with my resume?",
+        isSent: false,
+        name: "User2",
+        avatarUrl: "https://i.pravatar.cc/150?img=8"
+      },
+      {
+        text: "Of course! What role are you applying for?",
+        isSent: false,
+        name: "User3",
+        avatarUrl: "https://i.pravatar.cc/150?img=1"
+      }
+    ]
+  });
 
   return (
 <div className={`chat-dashboard ${isSidebarOpen ? 'shift' : ''}`}>
@@ -30,7 +63,13 @@ const ChatDashboard = ({ isSidebarOpen }) => {
 
       {/* Middle Section: ChatRoom */}
       <div className="chat-room-wrapper">
-        <ChatRoom topic={activeChat} />
+      <ChatRoom
+          topic={activeChat}
+          messages={chatMessages[activeChat]} 
+          setMessages={(newMessages) =>
+            setChatMessages((prev) => ({ ...prev, [activeChat]: newMessages }))
+  }
+/>
       </div>
 
       {/* Right Panel: Members Info */}
@@ -38,12 +77,15 @@ const ChatDashboard = ({ isSidebarOpen }) => {
         <h3>{activeChat}</h3>
         <p>Group members: {members.length}</p>
         <div className="chat-members">
-          {members.map((name, idx) => (
-            <div key={idx} className="chat-member">
-              <div className="avatar-circle" />
-              <span>{name}</span>
-            </div>
-          ))}
+        {members.map((member, idx) => (
+        <div key={idx} className="chat-member">
+          <div className="avatar-circle" />
+          <Link to={`/profile/${member.id}`} className="member-name-link">
+            {member.name}
+          </Link>
+        </div>
+      ))}
+
         </div>
       </div>
     </div>
