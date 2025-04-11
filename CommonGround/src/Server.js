@@ -31,7 +31,6 @@ import {
   addUserToChat,
   getMessagesFromChat,
   insertMessage
-
 } from './concepts/Queries.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -39,7 +38,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; // Use Render's PORT or fallback to 10000 for local testing
 
 // Create an HTTP server
 const server = http.createServer(app);
@@ -93,8 +92,7 @@ io.on('connection', (socket) => {
   });
 });
 
-
-
+// Middleware for CORS
 app.use((req, res, next) => {
   const allowedOrigins = ['https://commonnground.netlify.app', 'http://localhost:5173'];
   const origin = req.headers.origin;
@@ -318,9 +316,6 @@ app.post('/posts', upload.single('image'), async (req, res) => {
     }
 
 
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
 
     // ✅ Upload image if exists
     if (req.file) {
@@ -495,6 +490,9 @@ app.get('/chat-users/:chat_id', async (req, res) => {
 
 
 
+server.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+});
 
 
 
