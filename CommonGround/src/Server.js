@@ -39,7 +39,64 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
+const port = process.env.PORT || 10000;
 
+// Create an HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: ['https://commonnground.netlify.app', 'http://localhost:5173'], // Allow frontend origins
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
+// Attach `io` to the app for global access
+app.set('io', io);
+
+// WebSocket logic
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  socket.on('joinRoom', (chatId) => {
+    socket.join(chatId);
+    console.log(`User ${socket.id} joined room ${chatId}`);
+  });
+
+  socket.on('leaveRoom', (chatId) => {
+    socket.leave(chatId);
+    console.log(`User ${socket.id} left room ${chatId}`);
+  });
+
+  socket.on('sendMessage', async (message) => {
+    console.log('Message received:', message);
+
+    try {
+      // Save the message to the database
+      const savedMessage = await saveMessage(
+        message.chat_id,
+        message.sender_id,
+        message.content
+      );
+
+      // Broadcast the saved message to the specific chat room
+      io.to(message.chat_id).emit('receiveMessage', savedMessage);
+    } catch (err) {
+      console.error('Error handling message:', err);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('A user disconnected:', socket.id);
+  });
+});
+
+// Start the server after everything is initialized
+server.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+});
 
 
 app.use((req, res, next) => {
@@ -78,7 +135,6 @@ const BASE_URL = process.env.NODE_ENV === 'production'
   : process.env.LOCAL_URL;
 
 console.log(`Using BASE_URL: ${BASE_URL}`);
-
 
 
 app.post('/signup', async (req, res) => {
@@ -251,8 +307,6 @@ app.get('/interests/:userId', async (req, res) => {
   }
 });
 
-
-
 app.post('/posts', upload.single('image'), async (req, res) => {
   const { title, content, user_id } = req.body;
   let image_url = '';
@@ -267,6 +321,10 @@ app.post('/posts', upload.single('image'), async (req, res) => {
       }
     }
 
+
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
     // ✅ Upload image if exists
     if (req.file) {
@@ -439,75 +497,11 @@ app.get('/chat-users/:chat_id', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 10000;
-server.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
+
+
+app.listen(port, () => {
+  console.log(`🚀 Server is running on port ${port}`);
 });
-
-// Create an HTTP server
-const server = http.createServer(app);
-
-const io = new Server(server, {
-  cors: {
-    origin: ['https://commonnground.netlify.app', 'http://localhost:5173'], // Allow frontend origins
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
-});
-
-async function saveMessage(chatId, senderId, content) {
-  const query = `
-    INSERT INTO messages (chat_id, sender_id, content, sent_at)
-    VALUES ($1, $2, $3, NOW())
-    RETURNING id, chat_id, sender_id, content, sent_at;
-  `;
-  try {
-    const result = await pool.query(query, [chatId, senderId, content]);
-    return result.rows[0]; // Return the saved message
-  } catch (err) {
-    console.error('Error saving message:', err);
-    throw err;
-  }
-}
-
-app.set('io', io);
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-
-  socket.on('joinRoom', (chatId) => {
-    socket.join(chatId);
-    console.log(`User ${socket.id} joined room ${chatId}`);
-  });
-
-  socket.on('leaveRoom', (chatId) => {
-    socket.leave(chatId);
-    console.log(`User ${socket.id} left room ${chatId}`);
-  });
-
-  socket.on('sendMessage', async (message) => {
-    console.log('Message received:', message);
-
-    try {
-      // Save the message to the database
-      const savedMessage = await saveMessage(
-        message.chat_id,
-        message.sender_id,
-        message.content
-      );
-
-      // Broadcast the saved message to the specific chat room
-      io.to(message.chat_id).emit('receiveMessage', savedMessage);
-    } catch (err) {
-      console.error('Error handling message:', err);
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('A user disconnected:', socket.id);
-  });
-});
-
-
 
 
 
