@@ -39,6 +39,46 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
+
+
+
+app.use((req, res, next) => {
+  const allowedOrigins = ['https://commonnground.netlify.app', 'http://localhost:5173'];
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
+app.use(bodyParser.json());
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// Initialize tables
+createUsersTable();
+createUserProfilesTable();
+createUserInterestsTable();
+createPostsTable();
+
+// === Routes ===
+const BASE_URL = process.env.NODE_ENV === 'production'
+  ? process.env.RENDER_URL
+  : process.env.LOCAL_URL;
+
+console.log(`Using BASE_URL: ${BASE_URL}`);
+
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
@@ -106,45 +146,6 @@ io.on('connection', (socket) => {
     console.log('A user disconnected:', socket.id);
   });
 });
-
-
-app.use((req, res, next) => {
-  const allowedOrigins = ['https://commonnground.netlify.app', 'http://localhost:5173'];
-  const origin = req.headers.origin;
-
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-
-  next();
-});
-
-app.use(bodyParser.json());
-
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-
-// Initialize tables
-createUsersTable();
-createUserProfilesTable();
-createUserInterestsTable();
-createPostsTable();
-
-// === Routes ===
-const BASE_URL = process.env.NODE_ENV === 'production'
-  ? process.env.RENDER_URL
-  : process.env.LOCAL_URL;
-
-console.log(`Using BASE_URL: ${BASE_URL}`);
-
 
 app.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
