@@ -495,9 +495,6 @@ app.get('/chat-users/:chat_id', async (req, res) => {
 
 
 
-app.listen(port, () => {
-  console.log(`🚀 Server is running on port ${port}`);
-});
 
 
 
