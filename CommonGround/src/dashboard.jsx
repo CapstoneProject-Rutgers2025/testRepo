@@ -1,7 +1,7 @@
 //dashboard
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus } from "react-icons/fa";
 import Sidebar from "./sidebar/side";

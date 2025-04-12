@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import './chat.css';
 import ChatBubble from './chatbubble';
 
