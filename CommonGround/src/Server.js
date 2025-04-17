@@ -59,16 +59,33 @@ app.set('io', io);
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
+  // When a user joins a room
   socket.on('joinRoom', (chatId) => {
     socket.join(chatId);
     console.log(`User ${socket.id} joined room ${chatId}`);
+
+
+    io.to(chatId).emit('userJoined', {
+      userId: socket.id,
+      name: `User ${socket.id}`,
+      chatId,
+    });
   });
 
+  // When a user leaves a room
   socket.on('leaveRoom', (chatId) => {
     socket.leave(chatId);
     console.log(`User ${socket.id} left room ${chatId}`);
+
+    // Emit a "userLeft" event to the chat room
+    io.to(chatId).emit('userLeft', {
+      userId: socket.id,
+      name: `User ${socket.id}`, // You can replace this with the actual user name
+      chatId,
+    });
   });
 
+  // When a message is sent
   socket.on('sendMessage', async (message) => {
     console.log('Message received:', message);
 
@@ -87,6 +104,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  // When a user disconnects
   socket.on('disconnect', () => {
     console.log('A user disconnected:', socket.id);
   });

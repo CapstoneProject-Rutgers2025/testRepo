@@ -40,6 +40,21 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
     // Join the chat room via WebSocket
     socket.emit('joinRoom', chatId);
 
+      // Listen for user joined and left events for notifications
+  socket.on('userJoined', (data) => {
+    setNotifications((prev) => [
+      ...prev,
+      `${data.name} has joined the chat.`,
+    ]);
+  });
+
+  socket.on('userLeft', (data) => {
+    setNotifications((prev) => [
+      ...prev,
+      `${data.name} has left the chat.`,
+    ]);
+  });
+
     // Listen for new messages from the server
     socket.on('receiveMessage', (message) => {
       setMessages((prev) => [...prev, message]);
@@ -82,6 +97,15 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
       <div className="chat-header">
         <h3>{topic}</h3>
       </div>
+
+      <div className="chat-notifications">
+        {notifications.length > 0 && 
+          notifications.map((notif, i) => (
+            <p key={i} className="notification">{notif}</p>
+          ))
+        }
+      </div>
+      
 
       <div className="chat-messages">
         {messages.length === 0 ? (
