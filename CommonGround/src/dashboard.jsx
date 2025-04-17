@@ -9,8 +9,8 @@ import "./dashboard.css";
 
 const BASE_URL =
   import.meta.env.MODE === "production"
-    ? import.meta.env.VITE_RENDER_URL
-    : import.meta.env.VITE_LOCAL_URL;
+    ? import.meta.env.VITE_RENDER_URL || "https://testrepo-hkzu.onrender.com"
+    : import.meta.env.VITE_LOCAL_URL || "http://localhost:3000";
 
 console.log("BASE_URL:", BASE_URL); // Debug BASE_URL
 console.log("VITE_RENDER_URL:", import.meta.env.VITE_RENDER_URL);
