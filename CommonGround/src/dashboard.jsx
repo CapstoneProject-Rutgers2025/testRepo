@@ -43,27 +43,17 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          navigate("/login");
-          return;
-        }
-
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken.id;
-
-        const response = await fetch(`${BASE_URL}/posts?user_id=${userId}`);
+        const response = await fetch(`${BASE_URL}/posts`);
         if (!response.ok) {
           throw new Error(`Error fetching posts: ${response.statusText}`);
         }
-
         const data = await response.json();
         const formatted = data.map((post) => ({
           id: post.id,
           title: post.title,
           content: post.content,
           image_url: post.image_url,
-          user_name: post.email, // Use email as a placeholder for user name
+          user_name: post.user_name,
           liked: null,
         }));
         setPosts(formatted);
@@ -73,7 +63,7 @@ const Dashboard = () => {
     };
 
     fetchPosts();
-  }, [navigate]);
+  }, []);
 
   const handleSwipe = (id, liked) => {
     setPosts((prev) => {
