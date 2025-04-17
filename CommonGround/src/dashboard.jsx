@@ -43,16 +43,9 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          navigate("/login");
-          return;
-        }
-
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken.id;
-
         const response = await fetch(`${BASE_URL}/posts`);
+
+       
         if (!response.ok) {
           throw new Error(`Error fetching posts: ${response.statusText}`);
         }
@@ -73,7 +66,7 @@ const Dashboard = () => {
     };
 
     fetchPosts();
-  }, [navigate]);
+  }, []);
 
   const handleSwipe = (id, liked) => {
     setPosts((prev) => {
