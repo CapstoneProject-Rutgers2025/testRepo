@@ -52,7 +52,7 @@ const Dashboard = () => {
         const decodedToken = jwtDecode(token);
         const userId = decodedToken.id;
 
-        const response = await fetch(`${BASE_URL}/posts`);
+        const response = await fetch(`${BASE_URL}/posts?user_id=${userId}`);
         if (!response.ok) {
           throw new Error(`Error fetching posts: ${response.statusText}`);
         }
@@ -63,7 +63,7 @@ const Dashboard = () => {
           title: post.title,
           content: post.content,
           image_url: post.image_url,
-          user_name: post.user_name, // Use email as a placeholder for user name
+          user_name: post.email, // Use email as a placeholder for user name
           liked: null,
         }));
         setPosts(formatted);
