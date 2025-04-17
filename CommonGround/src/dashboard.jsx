@@ -8,11 +8,13 @@ import Sidebar from "./sidebar/side";
 import "./dashboard.css";
 
 const BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? process.env.VITE_RENDER_URL
-    : process.env.VITE_LOCAL_URL;
+  import.meta.env.MODE === "production"
+    ? import.meta.env.VITE_RENDER_URL
+    : import.meta.env.VITE_LOCAL_URL;
 
-console.log("BASE_URL:", BASE_URL);
+console.log("BASE_URL:", BASE_URL); // Debug BASE_URL
+console.log("VITE_RENDER_URL:", import.meta.env.VITE_RENDER_URL);
+console.log("VITE_LOCAL_URL:", import.meta.env.VITE_LOCAL_URL);
 
 const Dashboard = () => {
   const navigate = useNavigate();
