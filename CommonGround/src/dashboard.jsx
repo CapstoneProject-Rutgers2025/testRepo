@@ -12,6 +12,8 @@ const BASE_URL =
     ? process.env.VITE_RENDER_URL
     : process.env.VITE_LOCAL_URL;
 
+console.log("BASE_URL:", BASE_URL);
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
