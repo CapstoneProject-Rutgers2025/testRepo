@@ -376,12 +376,39 @@ app.post('/posts', upload.single('image'), async (req, res) => {
 
 
 app.get('/posts', async (req, res) => {
+  const userId = req.query.user_id; // Get user_id from query parameters
+
   try {
-    const posts = await getPosts();
-    res.status(200).json(posts);
+    // Step 1: Fetch user interests
+    const userInterestsResult = await pool.query(
+      `SELECT interest FROM user_interests WHERE user_id = $1`,
+      [userId]
+    );
+    const userInterests = userInterestsResult.rows.map(row => row.interest);
 
+    if (userInterests.length === 0) {
+      return res.status(200).json([]); // No interests, return an empty array
+    }
 
-  
+    // Step 2: Fetch posts that match user interests
+    const postsResult = await pool.query(
+      `
+      SELECT posts.id, posts.title, posts.content, posts.image_url, posts.tags, posts.created_at, 
+             users.id AS user_id, users.email
+      FROM posts
+      JOIN users ON posts.user_id = users.id
+      WHERE EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements_text(posts.tags::jsonb) AS tag
+        WHERE tag.value = ANY ($1)
+      )
+      ORDER BY posts.created_at DESC
+      `,
+      [userInterests]
+    );
+
+    // Step 3: Return the filtered posts
+    res.status(200).json(postsResult.rows);
   } catch (err) {
     console.error('Error retrieving posts:', err);
     res.status(500).json({ message: 'Error retrieving posts', error: err.message });
