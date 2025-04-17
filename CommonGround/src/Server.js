@@ -542,56 +542,6 @@ app.get('/chat-users/:chat_id', async (req, res) => {
 server.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });
-import jwtDecode from "jwt-decode";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-
-const Dashboard = () => {
-  const navigate = useNavigate();
-  const BASE_URL =
-    process.env.NODE_ENV === "production"
-      ? process.env.VITE_RENDER_URL
-      : process.env.VITE_LOCAL_URL;
-
-  useEffect(() => {
-    (async () => {
-      try {
-        console.log("BASE_URL:", BASE_URL); // Debug BASE_URL
-        const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("Token is missing. Redirecting to login.");
-          navigate("/login");
-          return;
-        }
-
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken.id;
-        console.log("Decoded userId:", userId); // Debug userId
-
-        if (!userId) {
-          console.error("User ID is missing. Redirecting to login.");
-          navigate("/login");
-          return;
-        }
-
-        const response = await fetch(`${BASE_URL}/posts?user_id=${userId}`);
-        console.log("Fetch Response:", response); // Debug response
-
-        if (!response.ok) {
-          throw new Error(`Error fetching posts: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("Fetched Posts:", data); // Debug fetched posts
-        // Process and set posts here...
-      } catch (err) {
-        console.error("Error fetching posts:", err);
-      }
-    })();
-  }, [navigate, BASE_URL]);
-
-  return <div>Dashboard</div>;
-};
 
 
 
