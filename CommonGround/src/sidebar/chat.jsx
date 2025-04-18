@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode'; 
 import './chat.css';
 import ChatBubble from './chatbubble';
 
@@ -15,6 +15,7 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState('');
   const [userId, setUserId] = useState(null);
+  const [notifications, setNotifications] = useState([]); // Initialize notifications state
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -40,20 +41,20 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
     // Join the chat room via WebSocket
     socket.emit('joinRoom', chatId);
 
-      // Listen for user joined and left events for notifications
-  socket.on('userJoined', (data) => {
-    setNotifications((prev) => [
-      ...prev,
-      `${data.name} has joined the chat.`,
-    ]);
-  });
+    // Listen for user joined and left events for notifications
+    socket.on('userJoined', (data) => {
+      setNotifications((prev) => [
+        ...prev,
+        `${data.name} has joined the chat.`,
+      ]);
+    });
 
-  socket.on('userLeft', (data) => {
-    setNotifications((prev) => [
-      ...prev,
-      `${data.name} has left the chat.`,
-    ]);
-  });
+    socket.on('userLeft', (data) => {
+      setNotifications((prev) => [
+        ...prev,
+        `${data.name} has left the chat.`,
+      ]);
+    });
 
     // Listen for new messages from the server
     socket.on('receiveMessage', (message) => {
@@ -63,6 +64,8 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
     // Cleanup on component unmount
     return () => {
       socket.emit('leaveRoom', chatId);
+      socket.off('userJoined');
+      socket.off('userLeft');
       socket.off('receiveMessage');
     };
   }, [chatId]);
@@ -99,13 +102,11 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
       </div>
 
       <div className="chat-notifications">
-        {notifications.length > 0 && 
+        {notifications.length > 0 &&
           notifications.map((notif, i) => (
             <p key={i} className="notification">{notif}</p>
-          ))
-        }
+          ))}
       </div>
-      
 
       <div className="chat-messages">
         {messages.length === 0 ? (

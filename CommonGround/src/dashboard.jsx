@@ -12,10 +12,6 @@ const BASE_URL =
     ? import.meta.env.VITE_RENDER_URL || "https://testrepo-hkzu.onrender.com"
     : import.meta.env.VITE_LOCAL_URL || "http://localhost:3000";
 
-console.log("BASE_URL:", BASE_URL); // Debug BASE_URL
-console.log("VITE_RENDER_URL:", import.meta.env.VITE_RENDER_URL);
-console.log("VITE_LOCAL_URL:", import.meta.env.VITE_LOCAL_URL);
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -34,6 +30,7 @@ const Dashboard = () => {
       try {
         const decodedToken = jwtDecode(token);
         setUser({
+          id: decodedToken.id, // Added user ID for chat functionality
           full_name: decodedToken.full_name,
           email: decodedToken.email,
         });
@@ -58,6 +55,7 @@ const Dashboard = () => {
           content: post.content,
           image_url: post.image_url,
           user_name: post.user_name,
+          chat_id: post.chat_id, 
           liked: null,
         }));
         setPosts(formatted);
@@ -69,24 +67,35 @@ const Dashboard = () => {
     fetchPosts();
   }, []);
 
-  const handleSwipe = (id, liked) => {
-    setPosts((prev) => {
-      const swipedPost = prev.find((post) => post.id === id);
-      if (!swipedPost) return prev;
+  const handleSwipe = async (id, liked) => {
+    setPosts((prev) => prev.filter((post) => post.id !== id)); // Remove the post from the feed
 
-      const updatedPosts = prev.map((post) =>
-        post.id === id ? { ...post, liked } : post
-      );
+    if (liked) {
+      try {
+        const post = posts.find((post) => post.id === id);
+        if (!post || !post.chat_id || !user) return;
 
-      setTimeout(() => {
-        setPosts((currentPosts) => {
-          const remaining = currentPosts.filter((post) => post.id !== id);
-          return [...remaining, swipedPost];
+        // Add the user to the chat associated with the post
+        const response = await fetch(`${BASE_URL}/chat-users`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            chat_id: post.chat_id,
+            user_id: user.id,
+          }),
         });
-      }, 300);
 
-      return updatedPosts;
-    });
+        if (!response.ok) {
+          throw new Error(`Failed to join chat: ${response.statusText}`);
+        }
+
+        console.log(`User ${user.id} added to chat ${post.chat_id}`);
+      } catch (err) {
+        console.error("Error joining chat:", err);
+      }
+    }
   };
 
   return user ? (
@@ -114,9 +123,9 @@ const Dashboard = () => {
                   const offset = info.offset.x;
                   const swipeThreshold = 250;
                   if (offset > swipeThreshold) {
-                    handleSwipe(posts[0].id, true);
+                    handleSwipe(posts[0].id, true); // Swipe right
                   } else if (offset < -swipeThreshold) {
-                    handleSwipe(posts[0].id, false);
+                    handleSwipe(posts[0].id, false); // Swipe left
                   }
                 }}
               >

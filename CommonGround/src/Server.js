@@ -377,6 +377,12 @@ app.post('/posts', upload.single('image'), async (req, res) => {
 
 app.get('/posts', async (req, res) => {
   try {
+    const result = await pool.query(`
+      SELECT posts.*, chats.id AS chat_id
+      FROM posts
+      LEFT JOIN chats ON posts.id = chats.post_id
+      ORDER BY posts.created_at DESC
+    `);
     const posts = await getPosts();
     res.status(200).json(posts);
   } catch (err) {
