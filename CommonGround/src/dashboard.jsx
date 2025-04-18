@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus } from "react-icons/fa";
 import Sidebar from "./sidebar/side";
 import "./dashboard.css";
+import socket from "./socket"; 
 
 const BASE_URL =
   import.meta.env.MODE === "production"
@@ -34,6 +35,19 @@ const Dashboard = () => {
           full_name: decodedToken.full_name,
           email: decodedToken.email,
         });
+        
+        // Connect to WebSocket and listen for events
+        socket.emit("joinDashboard", decodedToken.id); // Example event
+        socket.on("dashboardUpdate", (data) => {
+          console.log("Dashboard update received:", data);
+        });
+
+        // Cleanup WebSocket connection on unmount
+        return () => {
+          socket.emit("leaveDashboard", decodedToken.id); // Example event
+          socket.off("dashboardUpdate");
+        };
+
       } catch (error) {
         console.error("Invalid token:", error);
         navigate("/login");
