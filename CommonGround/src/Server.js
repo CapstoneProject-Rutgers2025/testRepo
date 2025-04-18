@@ -376,44 +376,10 @@ app.post('/posts', upload.single('image'), async (req, res) => {
 
 
 app.get('/posts', async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).send('Authorization token is missing');
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.id;
-
-    // Fetch the user's interests
-    const userInterestsResult = await pool.query(
-      `SELECT interest FROM user_interests WHERE user_id = $1`,
-      [userId]
-    );
-    const userInterests = userInterestsResult.rows.map(row => row.interest);
-
-    if (userInterests.length === 0) {
-      return res.status(200).json([]); // No interests, return an empty array
-    }
-
-    // Fetch posts that match the user's interests
-    const postsResult = await pool.query(
-      `
-      SELECT posts.id, posts.title, posts.content, posts.image_url, posts.tags, posts.created_at, 
-             users.id AS user_id, users.username AS user_name
-      FROM posts
-      JOIN users ON posts.user_id = users.id
-      WHERE EXISTS (
-        SELECT 1
-        FROM jsonb_array_elements_text(posts.tags::jsonb) AS tag
-        WHERE tag.value = ANY ($1)
-      )
-      ORDER BY posts.created_at DESC
-      `,
-      [userInterests]
-    );
-
-    res.status(200).json(postsResult.rows);
+    const posts = await getPosts();
+    res.status(200).json(posts);
   } catch (err) {
-    console.error('Error retrieving posts:', err);
     res.status(500).json({ message: 'Error retrieving posts', error: err.message });
   }
 });
