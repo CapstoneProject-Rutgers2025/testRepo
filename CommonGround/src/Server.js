@@ -50,6 +50,7 @@ const io = new Server(server, {
     methods: ['GET', 'POST'],
     credentials: true,
   },
+  transports: ['websocket'], 
 });
 
 // Attach `io` to the app for global access
