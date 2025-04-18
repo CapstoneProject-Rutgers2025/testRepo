@@ -110,6 +110,24 @@ io.on('connection', (socket) => {
   });
 });
 
+socket.on("joinDashboard", (userId) => {
+  console.log(`📥 User ${userId} joined dashboard via socket ${socket.id}`);
+
+  socket.emit("dashboardUpdate", {
+    message: "Welcome to the dashboard!",
+    time: new Date().toLocaleTimeString(),
+  });
+});
+
+
+
+socket.on("leaveDashboard", (userId) => {
+  console.log(`User ${userId} left the dashboard`);
+  socket.leave(`dashboard-${userId}`);
+});
+
+
+
 // Middleware for CORS
 app.use((req, res, next) => {
   const allowedOrigins = ['https://commonnground.netlify.app', 'http://localhost:5173'];
