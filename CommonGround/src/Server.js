@@ -58,6 +58,21 @@ app.set('io', io);
 // WebSocket logic
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
+  socket.on("joinDashboard", (userId) => {
+    console.log(`📥 User ${userId} joined dashboard via socket ${socket.id}`);
+  
+    socket.emit("dashboardUpdate", {
+      message: "Welcome to the dashboard!",
+      time: new Date().toLocaleTimeString(),
+    });
+  });
+  
+  
+  
+  socket.on("leaveDashboard", (userId) => {
+    console.log(`User ${userId} left the dashboard`);
+    socket.leave(`dashboard-${userId}`);
+  });
 
   // When a user joins a room
   socket.on('joinRoom', (chatId) => {
@@ -110,21 +125,7 @@ io.on('connection', (socket) => {
   });
 });
 
-socket.on("joinDashboard", (userId) => {
-  console.log(`📥 User ${userId} joined dashboard via socket ${socket.id}`);
 
-  socket.emit("dashboardUpdate", {
-    message: "Welcome to the dashboard!",
-    time: new Date().toLocaleTimeString(),
-  });
-});
-
-
-
-socket.on("leaveDashboard", (userId) => {
-  console.log(`User ${userId} left the dashboard`);
-  socket.leave(`dashboard-${userId}`);
-});
 
 
 
