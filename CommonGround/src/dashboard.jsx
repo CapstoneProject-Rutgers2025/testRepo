@@ -47,10 +47,22 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/posts`);
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/login");
+          return;
+        }
+
+        const response = await fetch(`${BASE_URL}/posts`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         if (!response.ok) {
           throw new Error(`Error fetching posts: ${response.statusText}`);
         }
+
         const data = await response.json();
         const formatted = data.map((post) => ({
           id: post.id,
@@ -67,7 +79,7 @@ const Dashboard = () => {
     };
 
     fetchPosts();
-  }, []);
+  }, [navigate]);
 
   const handleSwipe = (id, liked) => {
     setPosts((prev) => {
