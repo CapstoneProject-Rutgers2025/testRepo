@@ -454,6 +454,8 @@ app.post('/message', async (req, res) => {
   }
 });
 
+
+
 // Test route for getting messages from a chat
 app.get('/messages/:chatId', async (req, res) => {
   const { chatId } = req.params;
@@ -515,6 +517,25 @@ app.get('/user-chats/:user_id', async (req, res) => {
   }
 });
 
+app.post('/chat-users', async (req, res) => {
+  const { chat_id, user_id } = req.body;
+
+  if (!chat_id || !user_id) {
+    return res.status(400).json({ error: 'Missing chat_id or user_id' });
+  }
+
+  try {
+    await pool.query(
+      'INSERT INTO chat_users (chat_id, user_id) VALUES ($1, $2)',
+      [chat_id, user_id]
+    );
+    res.status(200).json({ message: 'User added to chat' });
+  } catch (err) {
+    console.error('Error adding user to chat:', err);
+    res.status(500).json({ error: 'Failed to add user to chat' });
+  }
+});
+
 app.get('/chat-users/:chat_id', async (req, res) => {
   const { chat_id } = req.params;
   try {
@@ -530,6 +551,25 @@ app.get('/chat-users/:chat_id', async (req, res) => {
   } catch (err) {
     console.error('Error fetching chat users:', err);
     res.status(500).json({ error: 'Failed to get users in chat' });
+  }
+});
+
+app.post('/dismiss-post', async (req, res) => {
+  const { post_id, user_id } = req.body;
+
+  if (!post_id || !user_id) {
+    return res.status(400).json({ error: 'Missing post_id or user_id' });
+  }
+
+  try {
+    await pool.query(
+      'INSERT INTO dismissed_posts (post_id, user_id) VALUES ($1, $2)',
+      [post_id, user_id]
+    );
+    res.status(200).json({ message: 'Post dismissed' });
+  } catch (err) {
+    console.error('Error dismissing post:', err);
+    res.status(500).json({ error: 'Failed to dismiss post' });
   }
 });
 

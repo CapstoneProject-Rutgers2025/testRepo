@@ -81,36 +81,63 @@ const Dashboard = () => {
     fetchPosts();
   }, []);
 
-  const handleSwipe = async (id, liked) => {
-    setPosts((prev) => prev.filter((post) => post.id !== id)); // Remove the post from the feed
+const handleSwipe = async (id, liked) => {
+  // Remove the post from the feed immediately for better UX
+  setPosts((prev) => prev.filter((post) => post.id !== id));
+
+  try {
+    const post = posts.find((post) => post.id === id);
+    if (!post) {
+      console.error("Post not found");
+      return;
+    }
 
     if (liked) {
-      try {
-        const post = posts.find((post) => post.id === id);
-        if (!post || !post.chat_id || !user) return;
-
-        // Add the user to the chat associated with the post
-        const response = await fetch(`${BASE_URL}/chat-users`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            chat_id: post.chat_id,
-            user_id: user.id,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to join chat: ${response.statusText}`);
-        }
-
-        console.log(`User ${user.id} added to chat ${post.chat_id}`);
-      } catch (err) {
-        console.error("Error joining chat:", err);
+      // Swiping right: Add the user to the group associated with the post
+      if (!post.chat_id || !user) {
+        console.error("Missing chat_id or user information");
+        return;
       }
+
+      const response = await fetch(`${BASE_URL}/chat-users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chat_id: post.chat_id,
+          user_id: user.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to join chat: ${response.statusText}`);
+      }
+
+      console.log(`User ${user.id} added to chat ${post.chat_id}`);
+    } else {
+      // Swiping left: Optionally persist the dismissal in the backend
+      const response = await fetch(`${BASE_URL}/dismiss-post`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          post_id: id,
+          user_id: user.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to dismiss post: ${response.statusText}`);
+      }
+
+      console.log(`Post ${id} dismissed for user ${user.id}`);
     }
-  };
+  } catch (err) {
+    console.error("Error handling swipe:", err);
+  }
+};
 
   return user ? (
     <div className="dashboard-container">
