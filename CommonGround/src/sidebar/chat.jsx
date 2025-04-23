@@ -4,10 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 import './chat.css';
 import ChatBubble from './chatbubble';
 
-const BASE_URL =
-  process.env.NODE_ENV === 'production'
-    ? process.env.VITE_RENDER_URL
-    : process.env.VITE_LOCAL_URL;
+const BASE_URL = 'https://testrepo-hkzu.onrender.com';
 
 const socket = io(BASE_URL);
 
