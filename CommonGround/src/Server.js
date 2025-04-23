@@ -57,69 +57,59 @@ const io = new Server(server, {
 // Attach `io` to the app for global access
 app.set('io', io);
 
+const saveMessage = async (chat_id, sender_id, content) => {
+  const query = `
+    INSERT INTO messages (chat_id, sender_id, content, created_at)
+    VALUES ($1, $2, $3, NOW())
+    RETURNING id, chat_id, sender_id, content, created_at
+  `;
+  const result = await pool.query(query, [chat_id, sender_id, content]);
+  return result.rows[0];
+};
+
 // WebSocket logic
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
-  socket.on("joinDashboard", (userId) => {
-    console.log(`📥 User ${userId} joined dashboard via socket ${socket.id}`);
-  
-    socket.emit("dashboardUpdate", {
-      message: "Welcome to the dashboard!",
-      time: new Date().toLocaleTimeString(),
-    });
-  });
-  
-  
-  
-  socket.on("leaveDashboard", (userId) => {
-    console.log(`User ${userId} left the dashboard`);
-    socket.leave(`dashboard-${userId}`);
-  });
 
-  // When a user joins a room
-  socket.on('joinRoom', (chatId) => {
-    socket.join(chatId);
-    console.log(`User ${socket.id} joined room ${chatId}`);
-
-
-    io.to(chatId).emit('userJoined', {
-      userId: socket.id,
-      name: `User ${socket.id}`,
-      chatId,
-    });
-  });
-
-  // When a user leaves a room
-  socket.on('leaveRoom', (chatId) => {
-    socket.leave(chatId);
-    console.log(`User ${socket.id} left room ${chatId}`);
-
-    // Emit a "userLeft" event to the chat room
-    io.to(chatId).emit('userLeft', {
-      userId: socket.id,
-      name: `User ${socket.id}`, // You can replace this with the actual user name
-      chatId,
-    });
-  });
-
-  // When a message is sent
   socket.on('sendMessage', async (message) => {
     console.log('Message received:', message);
 
+    const { chat_id, sender_id, content } = message;
+
+    if (!chat_id || !sender_id || !content) {
+      console.error('Missing chat_id, sender_id, or content');
+      return;
+    }
+
     try {
       // Save the message to the database
-      const savedMessage = await saveMessage(
-        message.chat_id,
-        message.sender_id,
-        message.content
-      );
+      const savedMessage = await saveMessage(chat_id, sender_id, content);
 
-      // Broadcast the saved message to the specific chat room
-      io.to(message.chat_id).emit('receiveMessage', savedMessage);
+      // Broadcast the message to all users in the chat room
+      io.to(chat_id).emit('receiveMessage', {
+        id: savedMessage.id,
+        chat_id: savedMessage.chat_id,
+        sender_id: savedMessage.sender_id,
+        content: savedMessage.content,
+        sent_at: savedMessage.created_at,
+      });
+
+      console.log('Message saved and broadcasted:', savedMessage);
     } catch (err) {
-      console.error('Error handling message:', err);
+      console.error('Error saving message to database:', err);
     }
   });
+
+  socket.on('joinRoom', (chatId) => {
+    socket.join(chatId);
+    console.log(`User joined chat room: ${chatId}`);
+  });
+
+  socket.on('leaveRoom', (chatId) => {
+    socket.leave(chatId);
+    console.log(`User left chat room: ${chatId}`);
+  });
+
 
   // When a user disconnects
   socket.on('disconnect', () => {
