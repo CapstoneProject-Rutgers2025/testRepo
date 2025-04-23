@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "/socket.io/*"
+  to = "https://testrepo-hkzu.onrender.com/socket.io/:splat"
+  status = 200
+  force = true
