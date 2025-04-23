@@ -91,14 +91,17 @@ const handleSwipe = async (id, liked) => {
       console.error("Post not found");
       return;
     }
+    console.log("Post object:", post);
+
+    if (!post.chat_id || !user) {
+      console.error("Missing chat_id or user information");
+      console.log("chat_id:", post.chat_id);
+      console.log("user:", user);
+      return;
+    }
 
     if (liked) {
       // Swiping right: Add the user to the group associated with the post
-      if (!post.chat_id || !user) {
-        console.error("Missing chat_id or user information");
-        return;
-      }
-
       const response = await fetch(`${BASE_URL}/chat-users`, {
         method: "POST",
         headers: {
