@@ -30,13 +30,21 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
   }, []);
 
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId) {
+      console.error('chatId is undefined');
+      return;
+    }
 
     // Fetch existing messages for the chat room
-    fetch(`${BASE_URL}/messages/${chatId}`)
-      .then((res) => res.json())
-      .then((data) => setMessages(data))
-      .catch((err) => console.error('Failed to fetch messages', err));
+   fetch(`${BASE_URL}/messages/${chatId}`)
+  .then((res) => {
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    return res.json();
+  })
+  .then((data) => setMessages(data))
+  .catch((err) => console.error('Failed to fetch messages:', err));
 
     // Join the chat room via WebSocket
     socket.emit('joinRoom', chatId);
