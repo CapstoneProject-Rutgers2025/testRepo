@@ -6,7 +6,7 @@ const BASE_URL =
     : "http://localhost:3000";
 
 const socket = io(BASE_URL, {
-  transports: ['websocket'], // Force WebSocket transport
+  transports: ['websocket', 'polling'], 
   withCredentials: true,    // Include credentials for CORS
 });
 

@@ -50,7 +50,8 @@ const io = new Server(server, {
     methods: ['GET', 'POST'],
     credentials: true,
   },
-  transports: ['websocket'], 
+  transports: ['websocket', 'polling'], 
+  allowEIO3: true, 
 });
 
 // Attach `io` to the app for global access
