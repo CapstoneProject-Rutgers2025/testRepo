@@ -399,15 +399,15 @@ app.post('/posts', upload.single('image'), async (req, res) => {
 app.get('/posts', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT posts.*, chats.id AS chat_id
+      SELECT posts.id, posts.title, posts.content, posts.image_url, users.username AS user_name, chats.id AS chat_id
       FROM posts
+      LEFT JOIN users ON posts.user_id = users.id
       LEFT JOIN chats ON posts.id = chats.post_id
-      ORDER BY posts.created_at DESC
     `);
-    const posts = await getPosts();
-    res.status(200).json(posts);
+    res.status(200).json(result.rows);
   } catch (err) {
-    res.status(500).json({ message: 'Error retrieving posts', error: err.message });
+    console.error('Error fetching posts:', err);
+    res.status(500).json({ error: 'Failed to fetch posts' });
   }
 });
 
