@@ -63,7 +63,9 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
 
     // Listen for new messages from the server
     socket.on('receiveMessage', (message) => {
-      setMessages((prev) => [...prev, message]);
+      if (message.sender_id !== userId) {
+        setMessages((prev) => [...prev, message]);
+      }
     });
 
     // Cleanup on component unmount
