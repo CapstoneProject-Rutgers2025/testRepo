@@ -55,6 +55,7 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
+  
   useEffect(() => {
     const fetchPosts = async () => {
       try {
