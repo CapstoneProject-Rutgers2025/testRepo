@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { motion } from "framer-motion";
-import { FaBars, FaHome, FaBell } from "react-icons/fa";
+import { FaBars, FaHome, FaBell, FaQuestionCircle } from "react-icons/fa";
 import "./dashboard.css"; // Ensure correct path
 
 const Navbar = ({ toggleSidebar }) => {
@@ -39,7 +39,7 @@ const Navbar = ({ toggleSidebar }) => {
           onClick={() => navigate("/help")} // Redirects to Help
           style={{ cursor: "pointer" }}
         >
-          <FaBell />
+          <FaQuestionCircle />
         </motion.div>
       </div>
     </div>
