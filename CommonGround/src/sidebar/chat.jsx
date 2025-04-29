@@ -95,7 +95,8 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
       {
         ...message,
         sender: 'You',
-        profile_picture: msg.profile_picture, // Optional: replace with actual profile picture URL
+        profile_picture:' ',
+        sent_at: new Date().toISOString(), // Optional: replace with actual profile picture URL
       },
     ]);
     setNewMsg('');
