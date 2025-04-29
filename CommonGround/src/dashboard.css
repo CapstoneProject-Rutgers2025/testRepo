@@ -215,3 +215,21 @@
 .create-post-btn:hover {
   background: #0056b3;
 }
+
+.nav-right {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 20px;
+}
+
+.nav-right div {
+  font-size: 24px;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.nav-right div:hover {
+  color: #ffcc00; /* Change color on hover */
+}

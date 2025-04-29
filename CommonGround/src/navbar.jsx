@@ -32,11 +32,11 @@ const Navbar = ({ toggleSidebar }) => {
           <FaHome />
         </motion.div>
 
-        {/* Notification Button - Redirects to Notifications */}
+        {/* Notification Button - Redirects to Help */}
         <motion.div
           whileHover={{ scale: 1.2 }}
           transition={{ duration: 0.2 }}
-          onClick={() => navigate("/notifications")} // Redirects to Notifications
+          onClick={() => navigate("/help")} // Redirects to Help
           style={{ cursor: "pointer" }}
         >
           <FaBell />
