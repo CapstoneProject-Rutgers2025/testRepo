@@ -95,8 +95,7 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
       {
         ...message,
         sender: 'You',
-        profile_picture: '', // Optional: replace with actual profile picture URL
-        sent_at: new Date().toISOString(),
+        profile_picture: msg.profile_picture, // Optional: replace with actual profile picture URL
       },
     ]);
     setNewMsg('');
@@ -132,7 +131,6 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
                 />
                 <span className="sender-name">{msg.sender}</span>
                 <span className="sent-time">
-                  {new Date(msg.sent_at).toLocaleTimeString()}
                 </span>
               </div>
               <div className="chat-bubble">{msg.content}</div>
