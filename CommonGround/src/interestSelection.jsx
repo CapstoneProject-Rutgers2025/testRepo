@@ -5,7 +5,7 @@ import './interestSelection.css';
 
 const availableInterests = [
   'Art', 'Baking', 'Cooking', 'Dance', 'Fashion', 'Fitness',
-  'Gaming', 'Music', 'Photography', 'Reading', 'Sports', 'Travel'
+  'Gaming', 'Music', 'Photography', 'Reading', 'Sports', 'Travel', 'Technology'
 ];
 
 const InterestSelection = () => {
