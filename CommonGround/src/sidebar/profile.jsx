@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import "./profile.css";
 import allInterests from "../../interests.js";
-
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [message, setMessage] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const navigate = useNavigate();
+  const { userId } = useParams(); // ✅ read :userId from URL
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -19,17 +20,20 @@ const Profile = () => {
 
     try {
       const decoded = jwtDecode(token);
-      const userId = decoded.id;
-      fetchProfile(userId);
+      const loggedInUserId = decoded.id;
+      setCurrentUserId(loggedInUserId);
+
+      const targetId = userId || loggedInUserId; // use route param or fallback to self
+      fetchProfile(targetId);
     } catch (err) {
       console.error("Token decode failed, navigating to login");
       navigate("/login");
     }
-  }, [navigate]);
+  }, [userId, navigate]);
 
-  const fetchProfile = async (userId) => {
+  const fetchProfile = async (id) => {
     try {
-      const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${userId}`, {
+      const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -66,10 +70,8 @@ const Profile = () => {
         formData.append("profile_picture", profileImageFile);
       }
       formData.append("bio", user.bio);
-      formData.append("name", user.displayName); // ✅ editable name
-      console.log("🚀 Sending tags:", user.tags);
+      formData.append("name", user.displayName);
       formData.append("interests", JSON.stringify(user.tags));
-      
 
       const response = await fetch(`https://testrepo-hkzu.onrender.com/profile/${user.id}`, {
         method: "PUT",
@@ -86,12 +88,8 @@ const Profile = () => {
       fetchProfile(user.id);
     } catch (err) {
       console.error("❌ Error updating profile:", err);
-    
-      // Try to read the full error text from the response
-      console.log("📨 Server responded with raw error:", err.message);
       setMessage("Error updating profile");
     }
-    
   };
 
   if (!user) return <p>Loading...</p>;
@@ -99,15 +97,18 @@ const Profile = () => {
   return (
     <div className="profile-container">
       <div className="profile-header"></div>
-  
+
       <div className="profile-img-wrapper">
         <label className="profile-pic-upload-label">
-        <img
-          src={user.profilePic?.startsWith("http") ? user.profilePic : `https://testrepo-hkzu.onrender.com${user.profilePic}`}
-          alt="Profile"
-          className="profile-pic"
+          <img
+            src={
+              user.profilePic?.startsWith("http")
+                ? user.profilePic
+                : `https://testrepo-hkzu.onrender.com${user.profilePic}`
+            }
+            alt="Profile"
+            className="profile-pic"
           />
-
           {isEditing && (
             <input
               type="file"
@@ -118,35 +119,35 @@ const Profile = () => {
           )}
         </label>
       </div>
-  
+
       <div className="profile-main">
         {isEditing ? (
           <input
             type="text"
             value={user.displayName}
-            onChange={(e) =>
-              setUser({ ...user, displayName: e.target.value })
-            }
+            onChange={(e) => setUser({ ...user, displayName: e.target.value })}
             className="display-name-input"
             placeholder="Display Name"
           />
         ) : (
           <h2 className="profile-name">{user.displayName || user.username}</h2>
         )}
-  
-        <button
-          className="edit-btn"
-          onClick={() => {
-            if (isEditing) {
-              handleProfileUpdate();
-            } else {
-              setIsEditing(true);
-            }
-          }}
-        >
-          <FaEdit /> {isEditing ? "Save" : "Edit Profile"}
-        </button>
-  
+
+        {currentUserId === user.id && (
+          <button
+            className="edit-btn"
+            onClick={() => {
+              if (isEditing) {
+                handleProfileUpdate();
+              } else {
+                setIsEditing(true);
+              }
+            }}
+          >
+            <FaEdit /> {isEditing ? "Save" : "Edit Profile"}
+          </button>
+        )}
+
         <div className="tags-box">
           <h4>Interested Topics</h4>
           <div className="tags-grid">
@@ -171,10 +172,7 @@ const Profile = () => {
             <select
               onChange={(e) => {
                 const selectedTag = e.target.value;
-                if (
-                  selectedTag &&
-                  !user.tags.includes(selectedTag)
-                ) {
+                if (selectedTag && !user.tags.includes(selectedTag)) {
                   setUser({
                     ...user,
                     tags: [...user.tags, selectedTag],
@@ -195,7 +193,7 @@ const Profile = () => {
             </select>
           )}
         </div>
-  
+
         <div className="bio-box">
           <h4>Bio</h4>
           {isEditing ? (
@@ -210,7 +208,7 @@ const Profile = () => {
             <p>{user.bio}</p>
           )}
         </div>
-  
+
         {message && <p className="update-message">{message}</p>}
       </div>
     </div>

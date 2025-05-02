@@ -1,14 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  FaHome, 
-  FaUser, 
-  FaBell, 
-  FaComments, 
-  FaSyncAlt, 
-  FaQuestionCircle, 
-  FaSignOutAlt 
+import {
+  FaHome,
+  FaUser,
+  FaBell,
+  FaComments,
+  FaSyncAlt,
+  FaQuestionCircle,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import "../dashboard.css";
@@ -24,54 +24,57 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         navigate("/profile");
         return;
       }
-  
-      const decoded = jwtDecode(token); // ✅ FIXED HERE
+
+      const decoded = jwtDecode(token);
       const userId = decoded.id;
-  
+
       if (userId) {
         navigate(`/profile/${userId}`);
       } else {
-        console.warn("No userId in token, falling back to /profile");
         navigate("/profile");
       }
     } catch (error) {
-      console.error("Token decode failed, navigating to fallback profile page");
+      console.error("Token decode failed");
       navigate("/profile");
     }
-  
+
     toggleSidebar();
   };
-  
+
+  const navItems = [
+    { icon: <FaHome />, label: "Dashboard", route: "/dashboard" },
+    { icon: <FaUser />, label: "Profile", action: handleProfileNavigation },
+    { icon: <FaBell />, label: "Notifications", route: "/notifications" },
+    { icon: <FaComments />, label: "Chat", route: "/chat" },
+    { icon: <FaSyncAlt />, label: "Updates", route: "/updates" },
+    { icon: <FaQuestionCircle />, label: "Help", route: "/help" },
+    { icon: <FaSignOutAlt />, label: "Logout", route: "/login" },
+  ];
 
   return (
     <motion.div
       className={`sidebar ${isOpen ? "open" : ""}`}
       initial={{ x: -250 }}
       animate={{ x: isOpen ? 0 : -250 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.25 }}
     >
       <ul>
-        <li onClick={() => { navigate("/dashboard"); toggleSidebar(); }}>
-          <FaHome /> Dashboard
-        </li>
-        <li onClick={handleProfileNavigation}>
-          <FaUser /> Profile
-        </li>
-        <li onClick={() => { navigate("/notifications"); toggleSidebar(); }}>
-          <FaBell /> Notifications
-        </li>
-        <li onClick={() => { navigate("/chat"); toggleSidebar(); }}>
-          <FaComments /> Chat
-        </li>
-        <li onClick={() => { navigate("/updates"); toggleSidebar(); }}>
-          <FaSyncAlt /> Updates
-        </li>
-        <li onClick={() => { navigate("/help"); toggleSidebar(); }}>
-          <FaQuestionCircle /> Help
-        </li>
-        <li onClick={() => { navigate("/login"); toggleSidebar(); }}>
-          <FaSignOutAlt /> Logout
-        </li>
+        {navItems.map((item, index) => (
+          <li
+            key={index}
+            onClick={() => {
+              if (item.action) {
+                item.action();
+              } else {
+                navigate(item.route);
+                toggleSidebar();
+              }
+            }}
+          >
+            <span style={{ marginRight: "12px" }}>{item.icon}</span>
+            {item.label}
+          </li>
+        ))}
       </ul>
     </motion.div>
   );

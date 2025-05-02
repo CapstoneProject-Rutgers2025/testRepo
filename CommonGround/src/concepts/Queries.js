@@ -345,6 +345,20 @@ async function insertMessage(chat_id, user_id, content) {
     }
 } 
 
+async function removeUserFromChat(chat_id, user_id) {
+  const query = `
+    DELETE FROM chat_users
+    WHERE chat_id = $1 AND user_id = $2
+  `;
+  try {
+    await pool.query(query, [chat_id, user_id]);
+    console.log(`User ${user_id} left chat ${chat_id}`);
+  } catch (err) {
+    console.error("Error removing user from chat:", err);
+    throw err;
+  }
+}
+
 
 export {
     createUsersTable,
@@ -365,5 +379,6 @@ export {
     createChat,
     getMessagesFromChat,
     addUserToChat,
-    insertMessage
+    insertMessage,
+    removeUserFromChat,
 };

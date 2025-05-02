@@ -51,7 +51,7 @@ function AnimatedRoutes({ isSidebarOpen, toggleSidebar }) {
           }
         />
         <Route
-          path="/profile"
+           path="/profile/:userId"
           element={
             <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
               <Profile />
@@ -59,13 +59,14 @@ function AnimatedRoutes({ isSidebarOpen, toggleSidebar }) {
           }
         />
         <Route
-          path="/profile/:userId"
+           path="/profile"
           element={
             <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
               <Profile />
-            </Layout>
+          </Layout>
           }
-        />
+       />
+
         <Route
           path="/notifications"
           element={

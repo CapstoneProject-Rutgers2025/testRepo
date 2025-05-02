@@ -30,7 +30,8 @@ import {
   createChat,
   addUserToChat,
   getMessagesFromChat,
-  insertMessage
+  insertMessage,
+  removeUserFromChat,
 } from './concepts/Queries.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -562,6 +563,31 @@ app.post('/dismiss-post', async (req, res) => {
     res.status(500).json({ error: 'Failed to dismiss post' });
   }
 });
+
+app.delete('/chat-users/:chatId/:userId', async (req, res) => {
+  const { chatId, userId } = req.params;
+
+  try {
+    await removeUserFromChat(chatId, userId);
+    res.status(200).json({ message: "User removed from chat" });
+  } catch (err) {
+    console.error("Error leaving group:", err);
+    res.status(500).json({ error: "Failed to leave group" });
+  }
+});
+app.post('/chat-users/leave/:chatId/:userId', async (req, res) => {
+  const { chatId, userId } = req.params;
+
+  try {
+    await removeUserFromChat(chatId, userId);
+    res.status(200).json({ message: "User removed from chat (via POST)" });
+  } catch (err) {
+    console.error("Error leaving group (POST fallback):", err);
+    res.status(500).json({ error: "Failed to leave group" });
+  }
+});
+
+
 
 
 

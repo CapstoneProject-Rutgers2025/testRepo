@@ -89,21 +89,22 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
     // Send the message to the server via WebSocket
     socket.emit('sendMessage', message);
 
-    // Optimistically update the UI
     setMessages((prev) => [
       ...prev,
       {
         ...message,
         sender: 'You',
-        profile_picture:' ',
-        sent_at: new Date().toISOString(), // Optional: replace with actual profile picture URL
+        sender_id: userId,
+        profile_picture: '', // or use actual profile URL if available
+        sent_at: new Date().toISOString(),
       },
     ]);
+    
     setNewMsg('');
   };
 
   return (
-    <div className="chat-room">
+    <div className="chat-room-wrapper">
       <div className="chat-header">
         <h3>{topic}</h3>
       </div>
@@ -116,28 +117,16 @@ const ChatRoom = ({ topic = 'Chat', chatId }) => {
       </div>
 
       <div className="chat-messages">
-        {messages.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#aaa' }}>No messages yet.</p>
-        ) : (
-          messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`chat-message ${msg.sender_id === userId ? 'me' : ''}`}
-            >
-              <div className="chat-meta">
-                <img
-                  src={msg.profile_picture || '/default-avatar.png'}
-                  alt="pfp"
-                  className="avatar-circle"
-                />
-                <span className="sender-name">{msg.sender}</span>
-                <span className="sent-time">
-                </span>
-              </div>
-              <div className="chat-bubble">{msg.content}</div>
-            </div>
-          ))
-        )}
+      {messages.map((msg, i) => (
+  <ChatBubble
+    key={i}
+    text={msg.content}
+    isSent={msg.sender_id === userId}
+    name={msg.sender}
+    avatarUrl={msg.profile_picture || '/default-avatar.png'}
+  />
+))}
+
       </div>
 
       <div className="chat-input-bar">

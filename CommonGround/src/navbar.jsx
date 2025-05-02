@@ -1,48 +1,44 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaBars, FaHome, FaBell, FaQuestionCircle } from "react-icons/fa";
-import "./dashboard.css"; // Ensure correct path
+import { FaBars, FaHome, FaQuestionCircle } from "react-icons/fa";
+import "./dashboard.css";
 
 const Navbar = ({ toggleSidebar }) => {
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigate = useNavigate();
 
   return (
-    <div className="navbar">
-      {/* ✅ Sidebar Toggle Button */}
-      <motion.div
-        whileHover={{ scale: 1.2 }}
-        whileTap={{ scale: 0.9 }}
-        transition={{ duration: 0.2 }}
-        className="menu-icon"
-        onClick={toggleSidebar}
-      >
-        <FaBars /> {/* ✅ This toggles the sidebar */}
-      </motion.div>
+    <header className="navbar-modern">
+      <div className="navbar-left">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={toggleSidebar}
+          className="icon-button"
+        >
+          <FaBars />
+        </motion.button>
+      </div>
 
-      {/* ✅ Navigation Icons */}
-      <div className="nav-right">
-        {/* Home Button - Redirects to Dashboard */}
-        <motion.div
-          whileHover={{ scale: 1.2 }}
-          transition={{ duration: 0.2 }}
-          onClick={() => navigate("/dashboard")} // Redirects to Dashboard
-          style={{ cursor: "pointer" }}
+      <div className="navbar-right">
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="icon-button"
+          onClick={() => navigate("/dashboard")}
         >
           <FaHome />
-        </motion.div>
+        </motion.button>
 
-        {/* Notification Button - Redirects to Help */}
-        <motion.div
-          whileHover={{ scale: 1.2 }}
-          transition={{ duration: 0.2 }}
-          onClick={() => navigate("/help")} // Redirects to Help
-          style={{ cursor: "pointer" }}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="icon-button"
+          onClick={() => navigate("/help")}
         >
           <FaQuestionCircle />
-        </motion.div>
+        </motion.button>
       </div>
-    </div>
+    </header>
   );
 };
 

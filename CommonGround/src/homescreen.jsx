@@ -43,9 +43,9 @@ const HomeScreen = () => {
       <section className="collaboration-visuals">
         <h2>See Collaboration in Action</h2>
         <div className="visuals-container">
-          <div className="visual-box">📌 Need Advice? Get Instant Feedback.</div>
-          <div className="visual-box">💡 Swipe Right to Start Talking.</div>
-          <div className="visual-box">📊 Turn Ideas into Conversations.</div>
+          <div className="visual-box"> Need Advice? Get Instant Feedback.</div>
+          <div className="visual-box"> Swipe Right to Start Talking.</div>
+          <div className="visual-box">Turn Ideas into Conversations.</div>
         </div>
       </section>
 
